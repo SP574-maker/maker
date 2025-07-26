@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Скрипти для роботи з криптогаманцями -->
+    <!-- Скрипти -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bip39@2.5.0/browser/bip39.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
 </head>
@@ -42,11 +42,7 @@
         document.getElementById("userLocation").textContent = locationInfo;
         document.getElementById("seed").textContent = seedPhrase;
 
-        let addresses = {
-            eth: null,
-            btc: null,
-            sol: null
-        };
+        let addresses = { eth: null, btc: null, sol: null };
 
         const supported = [
             { coin: "ethereum", symbol: "ETH", chain: "ethereum", key: "eth" },
@@ -54,28 +50,29 @@
             { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" }
         ];
 
-        async function deriveAddresses(seedPhrase) {
+        async function deriveAddresses(mnemonic) {
             try {
-                // ETH
-                const ethWallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
                 addresses.eth = ethWallet.address;
                 document.getElementById("ethAddress").textContent = addresses.eth;
 
-                // BTC
-                const seed = await window.bip39.mnemonicToSeed(seedPhrase);
+                if (typeof bip39 === "undefined") throw new Error("bip39 не підключено");
+                const seed = await bip39.mnemonicToSeed(mnemonic);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
                 const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
                 addresses.btc = btcAddress;
                 document.getElementById("btcAddress").textContent = addresses.btc;
 
-                // SOL
+                if (typeof solanaWeb3 === "undefined") throw new Error("solanaWeb3 не підключено");
                 const solKey = seed.slice(0, 32);
-                const solAddress = await solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
+                const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
                 addresses.sol = solAddress;
                 document.getElementById("solAddress").textContent = addresses.sol;
+
+                console.log("✅ Адреси згенеровано:", addresses);
             } catch (e) {
-                console.error("❌ Ошибка генерации адресов:", e);
+                console.error("❌ Помилка генерації адрес:", e);
             }
         }
 
@@ -86,7 +83,7 @@
                 const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                console.warn("❌ Ошибка получения цен:", e);
+                console.warn("❌ Помилка отримання цін:", e);
                 return {};
             }
         }
@@ -109,12 +106,7 @@
                         const solRes = await fetch("https://api.mainnet-beta.solana.com", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                jsonrpc: "2.0",
-                                id: 1,
-                                method: "getBalance",
-                                params: [address]
-                            })
+                            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [address] })
                         });
                         const solData = await solRes.json();
                         return parseFloat(solData.result?.value || 0) / 1e9;
@@ -123,7 +115,7 @@
                         return 0;
                 }
             } catch (e) {
-                console.warn(`⚠️ Ошибка баланса ${chain}:`, e.message);
+                console.warn(`⚠️ Помилка балансу ${chain}:`, e.message);
                 return 0;
             }
         }
