@@ -6,6 +6,8 @@
     --text-color: #e6edf3;
     --card-bg: #161b22;
     --border-color: #30363d;
+    --danger: #ff4c4c;
+    --mono-font: 'Courier New', monospace;
 }
 
 * {
@@ -21,67 +23,110 @@ body {
     padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: start;
+    align-items: flex-start;
     min-height: 100vh;
 }
 
-.profile-container {
+.container {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 30px;
-    max-width: 500px;
+    max-width: 550px;
     width: 100%;
-    box-shadow: 0 0 10px var(--accent-color);
+    box-shadow: 0 0 25px rgba(0, 255, 174, 0.2);
+    animation: fadeIn 0.6s ease-out;
 }
 
-.profile-container h1 {
+.container h1 {
     text-align: center;
     color: var(--accent-color);
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 28px;
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px var(--accent-color);
 }
 
 .profile-row {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     border-bottom: 1px dashed var(--border-color);
-    padding-bottom: 8px;
-}
-
-.profile-row span {
-    font-size: 15px;
-    word-break: break-word;
+    padding-bottom: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .profile-row .label {
     color: #8b949e;
     font-weight: 400;
-    width: 40%;
+    margin-bottom: 5px;
+    font-size: 14px;
 }
 
 .profile-row .value {
-    text-align: right;
-    width: 58%;
+    font-size: 16px;
     font-weight: 600;
     color: var(--accent-color);
+    font-family: var(--mono-font);
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+#seed {
+    margin-top: 8px;
+    background: #0e131a;
+    color: var(--text-color);
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    width: 100%;
+    resize: none;
+    font-family: var(--mono-font);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: break-word;
 }
 
 .button {
     display: block;
     width: 100%;
     margin-top: 25px;
-    padding: 12px;
+    padding: 14px;
     font-size: 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     background-color: var(--accent-color);
     color: #000;
     cursor: pointer;
-    transition: background 0.2s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 174, 0.4);
 }
 
 .button:hover {
     background-color: #00c98c;
+    box-shadow: 0 0 18px rgba(0, 255, 174, 0.6);
+    transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .button {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .container h1 {
+        font-size: 22px;
+    }
 }
