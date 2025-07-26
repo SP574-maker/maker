@@ -6,7 +6,7 @@
     <title>Профиль кошелька</title>
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- ✅ обовʼязково -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
@@ -44,8 +44,8 @@
             ethAddress = wallet.address;
             addressSpan.textContent = ethAddress;
         } catch (e) {
-            addressSpan.textContent = "Ошибка seed-фразы";
-            console.error("❌ Invalid seed:", e);
+            addressSpan.textContent = "❌ Ошибка seed-фразы";
+            console.error("Invalid seed phrase:", e);
         }
 
         const supported = [
@@ -60,10 +60,15 @@
         ];
 
         async function fetchPrices() {
-            const ids = supported.map(c => c.coin).join(",");
-            const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
-            const res = await fetch(url);
-            return await res.json();
+            try {
+                const ids = supported.map(c => c.coin).join(",");
+                const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
+                const res = await fetch(url);
+                return await res.json();
+            } catch (e) {
+                console.warn("Ошибка загрузки цен:", e);
+                return {};
+            }
         }
 
         async function fetchBalance(chain, address) {
@@ -100,12 +105,11 @@
                         return fetch(`https://api.trongrid.io/v1/accounts/${address}`)
                             .then(r => r.json())
                             .then(d => parseFloat(d.data?.[0]?.balance || 0) / 1e6);
-                    case "cardano":
-                    case "polkadot":
+                    default:
                         return 0;
                 }
             } catch (e) {
-                console.warn(`❌ Balance fetch error for ${chain}:`, e);
+                console.warn(`Ошибка баланса ${chain}:`, e);
                 return 0;
             }
         }
@@ -119,11 +123,11 @@
             const prices = await fetchPrices();
             let totalETH = 0;
 
-            await Promise.all(supported.map(async token => {
+            for (const token of supported) {
                 const balance = await fetchBalance(token.chain, ethAddress);
                 const rate = prices[token.coin]?.eth || 0;
                 totalETH += balance * rate;
-            }));
+            }
 
             balanceSpan.textContent = `${totalETH.toFixed(6)} ETH`;
         }
@@ -146,11 +150,12 @@
             }
 
             if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.openLink(url);  // Відкриває зовнішній браузер
+                Telegram.WebApp.openLink(url);
             } else {
                 window.open(url, "_blank");
             }
         }
+
         document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
     </script>
 </body>
