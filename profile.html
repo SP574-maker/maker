@@ -64,6 +64,7 @@
                 const ids = supported.map(c => c.coin).join(",");
                 const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
                 const res = await fetch(url);
+                if (!res.ok) throw new Error("Price fetch failed");
                 return await res.json();
             } catch (e) {
                 console.warn("Ошибка загрузки цен:", e);
@@ -75,22 +76,25 @@
             try {
                 switch (chain) {
                     case "ethereum":
-                        return fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`)
-                            .then(r => r.json())
-                            .then(d => {
-                                const key = Object.keys(d.data)[0];
-                                return parseFloat(d.data[key].address.balance) / 1e18;
-                            });
+                        const ethRes = await fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`);
+                        if (!ethRes.ok) throw new Error("Blockchair ETH error");
+                        const ethData = await ethRes.json();
+                        const key = Object.keys(ethData.data || {})[0];
+                        return parseFloat(ethData.data[key]?.address?.balance || 0) / 1e18;
+
                     case "bitcoin":
-                        return fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`)
-                            .then(r => r.text())
-                            .then(sats => parseFloat(sats) / 1e8);
+                        const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
+                        if (!btcRes.ok) throw new Error("BTC balance error");
+                        const sats = await btcRes.text();
+                        return parseFloat(sats || 0) / 1e8;
+
                     case "bsc":
-                        return fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.result) / 1e18);
+                        const bscRes = await fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`);
+                        const bscData = await bscRes.json();
+                        return parseFloat(bscData.result || 0) / 1e18;
+
                     case "solana":
-                        return fetch("https://api.mainnet-beta.solana.com", {
+                        const solRes = await fetch("https://api.mainnet-beta.solana.com", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -99,20 +103,25 @@
                                 method: "getBalance",
                                 params: [address]
                             })
-                        }).then(r => r.json()).then(d => parseFloat(d.result.value) / 1e9);
+                        });
+                        const solData = await solRes.json();
+                        return parseFloat(solData.result?.value || 0) / 1e9;
+
                     case "polygon":
-                        return fetch(`https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.result) / 1e18);
+                        const polyRes = await fetch(`https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`);
+                        const polyData = await polyRes.json();
+                        return parseFloat(polyData.result || 0) / 1e18;
+
                     case "tron":
-                        return fetch(`https://api.trongrid.io/v1/accounts/${address}`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.data?.[0]?.balance || 0) / 1e6);
+                        const tronRes = await fetch(`https://api.trongrid.io/v1/accounts/${address}`);
+                        const tronData = await tronRes.json();
+                        return parseFloat(tronData.data?.[0]?.balance || 0) / 1e6;
+
                     default:
                         return 0;
                 }
             } catch (e) {
-                console.warn(`Ошибка баланса ${chain}:`, e);
+                console.warn(`Ошибка баланса для ${chain}:`, e.message || e);
                 return 0;
             }
         }
@@ -132,7 +141,7 @@
                     const rate = prices[token.coin]?.eth || 0;
                     totalETH += balance * rate;
                 } catch (e) {
-                    console.warn(`Ошибка обработки ${token.symbol}`, e);
+                    console.warn(`Ошибка обработки ${token.symbol}:`, e.message || e);
                 }
             }
 
