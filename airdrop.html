@@ -72,7 +72,7 @@
         <!-- Скрипти -->
         <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
         <script>
-            fetch('/webapp/data/airdrops.json')
+            fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('airdropList');
