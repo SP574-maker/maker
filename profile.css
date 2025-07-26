@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+:root {
+    --bg-color: #0d1117;
+    --accent-color: #00ffae;
+    --text-color: #e6edf3;
+    --card-bg: #161b22;
+    --border-color: #30363d;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Orbitron', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    min-height: 100vh;
+}
+
+.profile-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 0 10px var(--accent-color);
+}
+
+.profile-container h1 {
+    text-align: center;
+    color: var(--accent-color);
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.profile-row {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 8px;
+}
+
+.profile-row span {
+    font-size: 15px;
+    word-break: break-word;
+}
+
+.profile-row .label {
+    color: #8b949e;
+    font-weight: 400;
+    width: 40%;
+}
+
+.profile-row .value {
+    text-align: right;
+    width: 58%;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.button {
+    display: block;
+    width: 100%;
+    margin-top: 25px;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--accent-color);
+    color: #000;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.button:hover {
+    background-color: #00c98c;
+}
