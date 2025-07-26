@@ -1,0 +1,26 @@
+[
+    {
+        "id": "arb",
+        "name": "Arbitrum ($ARB)",
+        "logo": "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=026",
+        "network": "Arbitrum One",
+        "reward": "до 250 ARB",
+        "ends": "31 июля 2025"
+    },
+    {
+        "id": "zkSync",
+        "name": "zkSync ($ZKS)",
+        "logo": "https://cryptologos.cc/logos/zksync-zks-logo.png?v=026",
+        "network": "zkSync Era",
+        "reward": "до 100 ZKS",
+        "ends": "15 августа 2025"
+    },
+    {
+        "id": "starknet",
+        "name": "StarkNet ($STRK)",
+        "logo": "https://cryptologos.cc/logos/starknet-stark-logo.png?v=026",
+        "network": "Starknet",
+        "reward": "до 500 STRK",
+        "ends": "1 сентября 2025"
+    }
+]
