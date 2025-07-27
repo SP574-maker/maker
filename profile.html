@@ -30,7 +30,7 @@
     </div>
 
     <script>
-        const ETHERSCAN_API_KEY = "ВСТАВ_СВІЙ_API_KEY_СЮДИ";
+        const ETHERSCAN_API_KEY = "ВСТАВ_ТУТ_СВІЙ_РЕАЛЬНИЙ_API_KEY";
 
         const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
         const seedPhrase = (data.seed || "").trim();
@@ -55,12 +55,15 @@
         async function deriveAddresses(mnemonic) {
             try {
                 if (!mnemonic) throw new Error("Seed-фраза порожня");
+                if (typeof bip39 === "undefined") throw new Error("bip39 не підключено");
+                if (typeof solanaWeb3 === "undefined") throw new Error("solanaWeb3 не підключено");
 
+                // ETH
                 const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
                 addresses.eth = ethWallet.address;
                 document.getElementById("ethAddress").textContent = addresses.eth;
 
-                if (typeof bip39 === "undefined") throw new Error("bip39 не підключено");
+                // BTC
                 const seed = await bip39.mnemonicToSeed(mnemonic);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
@@ -68,7 +71,7 @@
                 addresses.btc = btcAddress;
                 document.getElementById("btcAddress").textContent = addresses.btc;
 
-                if (typeof solanaWeb3 === "undefined") throw new Error("solanaWeb3 не підключено");
+                // SOL
                 const solKey = seed.slice(0, 32);
                 const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
                 addresses.sol = solAddress;
@@ -76,7 +79,7 @@
 
                 console.log("✅ Адреси згенеровано:", addresses);
             } catch (e) {
-                console.error("❌ Помилка генерації адрес:", e);
+                console.error("❌ Помилка генерації адрес:", e.message);
             }
         }
 
@@ -87,7 +90,7 @@
                 const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                console.warn("❌ Помилка отримання цін:", e);
+                console.warn("❌ Помилка отримання цін:", e.message);
                 return {};
             }
         }
@@ -157,9 +160,11 @@
 
         document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
 
-        // Старт
-        deriveAddresses(seedPhrase).then(() => {
-            calculateTotalETH();
+        // Старт після повного завантаження DOM
+        document.addEventListener("DOMContentLoaded", () => {
+            deriveAddresses(seedPhrase).then(() => {
+                calculateTotalETH();
+            });
         });
     </script>
 </body>
