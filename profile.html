@@ -12,7 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js"></script>
+    <script>
+        window.bip39Ready = false;
+        const bip39Script = document.createElement('script');
+        bip39Script.src = "https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js";
+        bip39Script.onload = () => {
+            window.bip39Ready = true;
+            console.log("✅ bip39 підключено");
+        };
+        document.head.appendChild(bip39Script);
+    </script>
 </head>
 <body>
     <div class="container">
