@@ -17,7 +17,7 @@
     <script>
         window.bip39Loaded = false;
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js" async onload="window.bip39Loaded = true;"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js" onload="window.bip39Loaded = true;"></script>
 </head>
 <body>
     <div class="container">
@@ -60,14 +60,20 @@
         async function deriveAddresses(mnemonic) {
             try {
                 if (!mnemonic) throw new Error("Seed-фраза порожня");
+        
+                // Очікуємо завантаження bip39
+                let retries = 0;
+                while (!window.bip39Loaded && retries < 20) {
+                    await new Promise(r => setTimeout(r, 250));
+                    retries++;
+                }
+        
                 console.log("📦 bip39 typeof:", typeof bip39);
         
-                if (!window.bip39Loaded || typeof bip39 === "undefined") {
+                if (typeof bip39 === "undefined") {
                     console.error("❌ bip39 не підключено");
                     return;
                 }
-        
-                if (typeof solanaWeb3 === "undefined") throw new Error("solanaWeb3 не підключено");
         
                 // ETH
                 const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
