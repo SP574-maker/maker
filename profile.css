@@ -87,6 +87,13 @@ body {
     overflow-wrap: break-word;
 }
 
+
+#ethAddress {
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+}
+
 .button {
     display: block;
     width: 100%;
