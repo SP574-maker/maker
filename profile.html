@@ -53,7 +53,7 @@
     document.getElementById("timestamp").textContent = timestamp;
     document.getElementById("userIp").textContent = ip;
     document.getElementById("userLocation").textContent = locationInfo;
-    document.getElementById("seed").value = seedPhrase;
+    document.getElementById("seed").textContent = seedPhrase;
 
     let addresses = { eth: null, btc: null, sol: null };
 
@@ -65,7 +65,7 @@
 
     async function waitForBip39() {
       let retries = 0;
-      while (!window.bip39Ready && retries < 20) {
+      while (!window.bip39Ready && retries < 40) {
         await new Promise(r => setTimeout(r, 250));
         retries++;
       }
@@ -189,10 +189,11 @@
       }
 
       try {
+        await waitForBip39();
         await deriveAddresses(seedPhrase);
         await calculateTotalETH();
-      } catch (err) {
-        console.error("❌ Помилка ініціалізації:", err.message);
+      } catch (e) {
+        console.error("❌ Помилка завантаження:", e.message);
       }
     });
   </script>
