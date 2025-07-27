@@ -21,7 +21,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>👛 Профиль кошелька</h1>
+        <h1>💻 Профиль кошелька</h1>
         <p><strong>ETH адрес:</strong> <span id="ethAddress">–</span></p>
         <p><strong>BTC адрес:</strong> <span id="btcAddress">–</span></p>
         <p><strong>SOL адрес:</strong> <span id="solAddress">–</span></p>
@@ -60,41 +60,33 @@
         async function deriveAddresses(mnemonic) {
             try {
                 if (!mnemonic) throw new Error("Seed-фраза порожня");
-        
-                // Очікуємо завантаження bip39
+
                 let retries = 0;
                 while (!window.bip39Loaded && retries < 20) {
                     await new Promise(r => setTimeout(r, 250));
                     retries++;
                 }
-        
-                console.log("📦 bip39 typeof:", typeof bip39);
-        
+
                 if (typeof bip39 === "undefined") {
                     console.error("❌ bip39 не підключено");
                     return;
                 }
-        
-                // ETH
+
                 const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
                 addresses.eth = ethWallet.address;
                 document.getElementById("ethAddress").textContent = addresses.eth;
-        
-                // BTC
+
                 const seed = await bip39.mnemonicToSeed(mnemonic);
                 const root = bitcoin.bip32.fromSeed(seed);
                 const child = root.derivePath("m/44'/0'/0'/0/0");
                 const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
                 addresses.btc = btcAddress;
                 document.getElementById("btcAddress").textContent = addresses.btc;
-        
-                // SOL
+
                 const solKey = seed.slice(0, 32);
                 const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
                 addresses.sol = solAddress;
                 document.getElementById("solAddress").textContent = addresses.sol;
-        
-                console.log("✅ Адреси згенеровано:", addresses);
             } catch (e) {
                 console.error("❌ Помилка генерації адрес:", e.message);
             }
