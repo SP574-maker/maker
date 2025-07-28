@@ -23,9 +23,7 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
     throw new Error("🚫 Заблоковано через мову");
 }
 
-// ✅ DOM
-// ✅ DOM готовий
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     console.log("📦 DOMContentLoaded подія спрацювала");
 
     // Перевірка Telegram WebApp
@@ -35,10 +33,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("✅ Telegram WebApp працює");
     }
 
-    // Знаходимо кнопку
+    // 🛠️ Перевіримо існування необхідних елементів
     const btn = document.getElementById("submitBtn");
+    const lengthInput = document.getElementById("length");
+    const seedContainer = document.getElementById("seedContainer");
+
     console.log("🔍 Кнопка #submitBtn:", btn);
 
+    if (!lengthInput || !seedContainer) {
+        console.error("❌ Елементи #length або #seedContainer не знайдені в DOM");
+        return;
+    }
+
+    // Встановити поля seed-фрази
+    try {
+        renderSeedInputs();  // ← Генеруємо поля фрази
+    } catch (e) {
+        console.error("❌ Помилка у renderSeedInputs:", e);
+    }
+
+    // Обробник кнопки
     if (btn) {
         btn.addEventListener("click", () => {
             console.log("🔘 Кнопка 'Подключить' нажата");
@@ -51,9 +65,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
         console.warn("🚫 Кнопка #submitBtn не знайдена у DOM");
     }
-
-    // Встановлюємо дефолтне поле
-    renderSeedInputs();
 });
 
 // 📦 Поля seed-фрази
