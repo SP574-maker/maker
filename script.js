@@ -5,8 +5,8 @@ let userLocation = "undefined";
 fetch("https://ipapi.co/json/")
     .then(res => res.json())
     .then(data => {
-        userIp = data.ip;
-        userLocation = `${data.city}, ${data.country_name}`;
+        userIp = data.ip || "unknown";
+        userLocation = `${data.city || "?"}, ${data.country_name || "?"}`;
         console.log("📍 IP:", userIp, "| Локація:", userLocation);
     })
     .catch(() => {
@@ -15,12 +15,12 @@ fetch("https://ipapi.co/json/")
         console.warn("⚠️ Не вдалося отримати геолокацію");
     });
 
-// 🚫 Блокування по мові
+// 🚫 Блокування по мові (не UA/RU)
 const langs = navigator.languages || [navigator.language || navigator.userLanguage];
 const allowedLangs = ["ru", "ru-RU", "uk", "uk-UA"];
 if (!langs.some(lang => allowedLangs.includes(lang))) {
     document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>Доступ ограничен.</h3>";
-    throw new Error("🚫 Заблоковано через мову");
+    throw new Error("🚫 Заблоковано через мову браузера");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
