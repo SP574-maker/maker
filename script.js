@@ -229,8 +229,12 @@ function setupSelect() {
     });
 }
 
-// ⚠️ Показати попередження
 function showWarning(message) {
+    if (!message || message.trim() === "") {
+        clearWarning(); // приховати, якщо пусто
+        return;
+    }
+
     let warning = document.getElementById("validationWarning");
 
     if (!warning) {
