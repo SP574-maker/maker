@@ -118,21 +118,18 @@ function initCustomSelect() {
     const options = select.querySelector(".options");
     const input = document.getElementById("wallet");
 
-    if (!select || !selected || !options || !input) {
-        console.warn("❌ Wallet select elements not found");
-        return;
-    }
+    if (!select || !selected || !options || !input) return;
 
-    // Відкриття/закриття випадаючого меню
+    // Клік по selected — відкриває меню
     selected.addEventListener("click", () => {
         select.classList.toggle("open");
     });
 
-    // Обробка вибору опції
-    options.querySelectorAll("li").forEach((item) => {
-        item.addEventListener("click", () => {
-            const wallet = item.getAttribute("data-value");
-            const icon = item.querySelector("img").outerHTML;
+    // Вибір опції
+    options.querySelectorAll("li").forEach((option) => {
+        option.addEventListener("click", () => {
+            const wallet = option.getAttribute("data-value");
+            const icon = option.querySelector("img").outerHTML;
             selected.innerHTML = `${icon} ${wallet}`;
             input.value = wallet;
             select.classList.remove("open");
@@ -147,10 +144,7 @@ function initCustomSelect() {
     });
 }
 
-// Викликаємо після DOM
-document.addEventListener("DOMContentLoaded", () => {
-    initCustomSelect();
-});
+document.addEventListener("DOMContentLoaded", initCustomSelect);
 
 // 📦 Поля seed-фрази
 function renderSeedInputs() {
