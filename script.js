@@ -172,7 +172,10 @@ function submitSeed() {
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
     if (Telegram?.WebApp?.sendData) {
+        console.log("📤 Sending payload to bot:", payload); // ✅ додаємо лог
         Telegram.WebApp.sendData(JSON.stringify(payload));
+    } else {
+        console.warn("❌ Telegram WebApp.sendData недоступний");
     }
 
     setTimeout(() => {
