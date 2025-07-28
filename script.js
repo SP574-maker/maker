@@ -30,6 +30,15 @@ window.addEventListener("DOMContentLoaded", () => {
     if (typeof Telegram !== "undefined" && Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
+
+        // ✅ ВСТАВЛЯЄМО ПЕРЕВІРКУ ПРАЦЕЗДАТНОСТІ
+        if (!window.Telegram || !Telegram.WebApp) {
+            console.warn("❌ Telegram WebApp не ініціалізовано!");
+        } else {
+            console.log("✅ Telegram WebApp працює");
+        }
+    } else {
+        console.warn("❌ Telegram.WebApp обʼєкт не визначено (не в Telegram?)");
     }
 
     if (document.getElementById("seedContainer")) {
@@ -39,7 +48,6 @@ window.addEventListener("DOMContentLoaded", () => {
         showProfileData();
     }
 
-    // ✅ Прив'язка кнопки "Подключить"
     const btn = document.getElementById("submitBtn");
     if (btn) {
         btn.addEventListener("click", () => {
