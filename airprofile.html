@@ -34,21 +34,27 @@
     </div>
 
     <script>
-        const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
+        // Ініціалізація WebApp (перевірка)
+        if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+            alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
+        } else {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
 
-        // Заповнення інформації
-        document.getElementById("username").textContent = tgUser.username || "—";
-        document.getElementById("userid").textContent = tgUser.id || "—";
-        document.getElementById("timestamp").textContent = new Date().toLocaleString();
+            const tgUser = Telegram.WebApp.initDataUnsafe.user || {};
 
-        // Показати аватар, якщо є
-        if (tgUser.photo_url) {
-            const avatar = document.getElementById("avatar");
-            avatar.src = tgUser.photo_url;
-            avatar.style.display = "inline-block";
+            // Заповнення інформації
+            document.getElementById("username").textContent = tgUser.username || "—";
+            document.getElementById("userid").textContent = tgUser.id || "—";
+            document.getElementById("timestamp").textContent = new Date().toLocaleString();
+
+            // Показати аватар, якщо є
+            if (tgUser.photo_url) {
+                const avatar = document.getElementById("avatar");
+                avatar.src = tgUser.photo_url;
+                avatar.style.display = "inline-block";
+            }
         }
-
-        Telegram.WebApp.expand();
 
         // Кнопка "Поделиться"
         function shareAirdrop() {
