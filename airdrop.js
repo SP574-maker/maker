@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // ======= Завантаження airdrops =======
     fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
         .then(res => res.json())
         .then(data => {
@@ -24,10 +25,38 @@ document.addEventListener("DOMContentLoaded", () => {
                 "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
         });
 
-    // Привʼязка до кнопки сабміту
+    // ======= Обробка кнопки сабміту =======
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
+
+    // ======= Кастомний селектор гаманця (працює після DOMContentLoaded) =======
+    const selectWrapper = document.querySelector('.custom-select');
+    if (selectWrapper) {
+        const selected = selectWrapper.querySelector('.selected');
+        const options = selectWrapper.querySelectorAll('.options li');
+        const hiddenInput = document.querySelector('#wallet');
+
+        selected.addEventListener('click', () => {
+            selectWrapper.classList.toggle('open');
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                selected.innerHTML = option.innerHTML;
+                hiddenInput.value = option.dataset.value;
+                selectWrapper.classList.remove('open');
+            });
+        });
+
+        document.addEventListener('click', e => {
+            if (!selectWrapper.contains(e.target)) {
+                selectWrapper.classList.remove('open');
+            }
+        });
+    }
 });
+
+// ======= Функції поза DOMContentLoaded =======
 
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
@@ -94,32 +123,6 @@ function submitAirdrop() {
     };
 
     console.log("[📤 Отправка]", payload);
-    tg.sendData(JSON.stringify(payload));  // надсилання payload у Telegram бота
-    tg.close();  // автоматично закриває WebApp
-}
-
-// ======= Кастомний селектор гаманця =======
-const selectWrapper = document.querySelector('.custom-select');
-if (selectWrapper) {
-    const selected = selectWrapper.querySelector('.selected');
-    const options = selectWrapper.querySelectorAll('.options li');
-    const hiddenInput = document.querySelector('#wallet');
-
-    selected.addEventListener('click', () => {
-        selectWrapper.classList.toggle('open');
-    });
-
-    options.forEach(option => {
-        option.addEventListener('click', () => {
-            selected.innerHTML = option.innerHTML;
-            hiddenInput.value = option.dataset.value;
-            selectWrapper.classList.remove('open');
-        });
-    });
-
-    document.addEventListener('click', e => {
-        if (!selectWrapper.contains(e.target)) {
-            selectWrapper.classList.remove('open');
-        }
-    });
+    tg.sendData(JSON.stringify(payload));
+    tg.close(); // WebApp автоматично закриється
 }
