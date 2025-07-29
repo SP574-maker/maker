@@ -42,6 +42,23 @@ function renderSeedInputs() {
         input.placeholder = `Слово ${i + 1}`;
         container.appendChild(input);
     }
+
+    // Додати слухач вставки на перше поле
+    const inputs = container.querySelectorAll('input');
+    if (inputs.length > 0) {
+        inputs[0].addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const words = pasted.trim().split(/\s+/);
+            if (words.length > 1) {
+                words.forEach((word, index) => {
+                    if (inputs[index]) inputs[index].value = word;
+                });
+            } else {
+                inputs[0].value = pasted;
+            }
+        });
+    }
 }
 
 function clearWarning() {
