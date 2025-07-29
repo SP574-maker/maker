@@ -1,23 +1,29 @@
-// Загрузка Airdrop'ов
-fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById('airdropList');
-        container.innerHTML = '';
-        data.forEach(drop => {
-            const card = document.createElement('div');
-            card.className = 'airdrop-card';
-            card.innerHTML = `
-                <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
-                <h2>${drop.name}</h2>
-                <p>💸 Награда: <strong>${drop.reward}</strong></p>
-                <p>🌐 Сеть: ${drop.network}</p>
-                <p>⏳ До: ${drop.ends}</p>
-                <button onclick="selectAirdrop('${drop.name}')">Участвовать</button>
-            `;
-            container.appendChild(card);
+document.addEventListener("DOMContentLoaded", () => {
+    fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('airdropList');
+            container.innerHTML = '';
+            data.forEach(drop => {
+                const card = document.createElement('div');
+                card.className = 'airdrop-card';
+                card.innerHTML = `
+                    <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
+                    <h2>${drop.name}</h2>
+                    <p>💸 Награда: <strong>${drop.reward}</strong></p>
+                    <p>🌐 Сеть: ${drop.network}</p>
+                    <p>⏳ До: ${drop.ends}</p>
+                    <button onclick="selectAirdrop('${drop.name}')">Участвовать</button>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("Ошибка при загрузке JSON:", error);
+            document.getElementById("airdropList").innerHTML =
+                "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
         });
-    });
+});
 
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
