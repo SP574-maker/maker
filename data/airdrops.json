@@ -1,26 +1,66 @@
 [
     {
-        "id": "arb",
-        "name": "Arbitrum ($ARB)",
-        "logo": "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=026",
-        "network": "Arbitrum One",
-        "reward": "до 250 ARB",
-        "ends": "31 июля 2025"
+        "id": "fuel",
+        "name": "Fuel ($FUEL)",
+        "logo": "https://sp574-maker.github.io/maker/logos/fuel.png",
+        "network": "Fuel Network",
+        "reward": "до 180 FUEL",
+        "ends": "15 сентября 2025"
     },
     {
-        "id": "zkSync",
+        "id": "celestia",
+        "name": "Celestia ($TIA)",
+        "logo": "https://sp574-maker.github.io/maker/logos/tia.png",
+        "network": "Celestia",
+        "reward": "до 70 TIA",
+        "ends": "20 сентября 2025"
+    },
+    {
+        "id": "layerzero",
+        "name": "LayerZero ($ZRO)",
+        "logo": "https://sp574-maker.github.io/maker/logos/zro.png",
+        "network": "LayerZero",
+        "reward": "до 100 ZRO",
+        "ends": "25 сентября 2025"
+    },
+    {
+        "id": "blast",
+        "name": "Blast ($BLAST)",
+        "logo": "https://sp574-maker.github.io/maker/logos/blast.png",
+        "network": "Blast L2",
+        "reward": "до 120 BLAST",
+        "ends": "30 сентября 2025"
+    },
+    {
+        "id": "polygon",
+        "name": "Polygon ($MATIC)",
+        "logo": "https://sp574-maker.github.io/maker/logos/matic.png",
+        "network": "Polygon PoS",
+        "reward": "до 300 MATIC",
+        "ends": "10 октября 2025"
+    },
+    {
+        "id": "scroll",
+        "name": "Scroll ($SCRL)",
+        "logo": "https://sp574-maker.github.io/maker/logos/scrl.png",
+        "network": "Scroll ZK",
+        "reward": "до 250 SCRL",
+        "ends": "15 октября 2025"
+    },
+    {
+        "id": "linea",
+        "name": "Linea ($LNA)",
+        "logo": "https://sp574-maker.github.io/maker/logos/lna.png",
+        "network": "Linea ZK",
+        "reward": "до 150 LNA",
+        "ends": "20 октября 2025"
+    },
+    {
+        "id": "zksync",
         "name": "zkSync ($ZKS)",
-        "logo": "https://cryptologos.cc/logos/zksync-zks-logo.png?v=026",
+        "logo": "https://sp574-maker.github.io/maker/logos/zks.png",
         "network": "zkSync Era",
-        "reward": "до 100 ZKS",
-        "ends": "15 августа 2025"
-    },
-    {
-        "id": "starknet",
-        "name": "StarkNet ($STRK)",
-        "logo": "https://cryptologos.cc/logos/starknet-stark-logo.png?v=026",
-        "network": "Starknet",
-        "reward": "до 500 STRK",
-        "ends": "1 сентября 2025"
+        "reward": "до 200 ZKS",
+        "ends": "25 октября 2025"
     }
 ]
