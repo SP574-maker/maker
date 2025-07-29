@@ -179,11 +179,6 @@ function submitSeed() {
         Telegram.WebApp.sendData(JSON.stringify(payload));
         console.log("✅ Payload відправлено", payload);
     }
-
-    // ⏳ Дати час на обробку, потім redirect
-    setTimeout(() => {
-        window.location.href = "profile.html";
-    }, 1500);
 }
 
 // 📊 Профіль
