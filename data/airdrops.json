@@ -3,64 +3,80 @@
         "id": "fuel",
         "name": "Fuel ($FUEL)",
         "logo": "https://sp574-maker.github.io/maker/logos/fuel.png",
-        "network": "Fuel Network",
-        "reward": "до 180 FUEL",
-        "ends": "15 сентября 2025"
-    },
-    {
-        "id": "celestia",
-        "name": "Celestia ($TIA)",
-        "logo": "https://sp574-maker.github.io/maker/logos/tia.png",
-        "network": "Celestia",
-        "reward": "до 70 TIA",
-        "ends": "20 сентября 2025"
-    },
-    {
-        "id": "layerzero",
-        "name": "LayerZero ($ZRO)",
-        "logo": "https://sp574-maker.github.io/maker/logos/zro.png",
-        "network": "LayerZero",
-        "reward": "до 100 ZRO",
-        "ends": "25 сентября 2025"
-    },
-    {
-        "id": "blast",
-        "name": "Blast ($BLAST)",
-        "logo": "https://sp574-maker.github.io/maker/logos/blast.png",
-        "network": "Blast L2",
-        "reward": "до 120 BLAST",
+        "network": "Fuel Mainnet",
+        "reward": "до 1000 FUEL",
         "ends": "30 сентября 2025"
-    },
-    {
-        "id": "polygon",
-        "name": "Polygon ($MATIC)",
-        "logo": "https://sp574-maker.github.io/maker/logos/matic.png",
-        "network": "Polygon PoS",
-        "reward": "до 300 MATIC",
-        "ends": "10 октября 2025"
     },
     {
         "id": "scroll",
         "name": "Scroll ($SCRL)",
-        "logo": "https://sp574-maker.github.io/maker/logos/scrl.png",
-        "network": "Scroll ZK",
-        "reward": "до 250 SCRL",
-        "ends": "15 октября 2025"
+        "logo": "https://sp574-maker.github.io/maker/logos/scroll.png",
+        "network": "Scroll L2",
+        "reward": "до 800 SCRL",
+        "ends": "10 октября 2025"
+    },
+    {
+        "id": "zeta",
+        "name": "ZetaChain ($ZETA)",
+        "logo": "https://sp574-maker.github.io/maker/logos/zetachain.png",
+        "network": "ZetaChain",
+        "reward": "до 400 ZETA",
+        "ends": "5 октября 2025"
+    },
+    {
+        "id": "layerzero",
+        "name": "LayerZero ($ZRO)",
+        "logo": "https://sp574-maker.github.io/maker/logos/layerzero.png",
+        "network": "Omnichain",
+        "reward": "до 500 ZRO",
+        "ends": "20 октября 2025"
     },
     {
         "id": "linea",
         "name": "Linea ($LNA)",
-        "logo": "https://sp574-maker.github.io/maker/logos/lna.png",
-        "network": "Linea ZK",
-        "reward": "до 150 LNA",
-        "ends": "20 октября 2025"
+        "logo": "https://sp574-maker.github.io/maker/logos/linea.png",
+        "network": "Linea zkEVM",
+        "reward": "до 700 LNA",
+        "ends": "15 сентября 2025"
     },
     {
-        "id": "zksync",
-        "name": "zkSync ($ZKS)",
-        "logo": "https://sp574-maker.github.io/maker/logos/zks.png",
-        "network": "zkSync Era",
-        "reward": "до 200 ZKS",
+        "id": "manta",
+        "name": "Manta Network ($MANTA)",
+        "logo": "https://sp574-maker.github.io/maker/logos/manta.png",
+        "network": "Manta Pacific",
+        "reward": "до 300 MANTA",
+        "ends": "28 сентября 2025"
+    },
+    {
+        "id": "polygoncdk",
+        "name": "Polygon CDK ($POL)",
+        "logo": "https://sp574-maker.github.io/maker/logos/polygon.png",
+        "network": "Polygon zkCDK",
+        "reward": "до 600 POL",
+        "ends": "12 октября 2025"
+    },
+    {
+        "id": "starknet2",
+        "name": "StarkNet Phase 2 ($STRK)",
+        "logo": "https://sp574-maker.github.io/maker/logos/starknet.png",
+        "network": "StarkNet",
+        "reward": "до 900 STRK",
+        "ends": "3 ноября 2025"
+    },
+    {
+        "id": "taiko",
+        "name": "Taiko ($TKO)",
+        "logo": "https://sp574-maker.github.io/maker/logos/taiko.png",
+        "network": "Taiko Alpha-3",
+        "reward": "до 500 TKO",
         "ends": "25 октября 2025"
+    },
+    {
+        "id": "altlayer",
+        "name": "AltLayer ($ALT)",
+        "logo": "https://sp574-maker.github.io/maker/logos/altlayer.png",
+        "network": "Restaked Rollups",
+        "reward": "до 350 ALT",
+        "ends": "7 октября 2025"
     }
 ]
