@@ -10,7 +10,7 @@
     {
         "id": "scroll",
         "name": "Scroll ($SCRL)",
-        "logo": "https://sp574-maker.github.io/maker/logos/scroll.png",
+        "logo": "https://www.google.com/imgres?imgurl=https%3A%2F%2Ffunctionalworks-backend--prod.s3.amazonaws.com%2Flogos%2Fae4915bc41d2f683fd4857245a6936ff&tbnid=EbfxouAy5cTk4M&vet=10CBYQxiAoCWoXChMImMeWie_ijgMVAAAAAB0AAAAAEAc..i&imgrefurl=https%3A%2F%2Fblockchain.works-hub.com%2Fjobs%2Fremote-senior-product-manager-7fd&docid=j5HSZ_RW7FNE8M&w=400&h=400&itg=1&q=Scroll%20(%24SCRL)&ved=0CBYQxiAoCWoXChMImMeWie_ijgMVAAAAAB0AAAAAEAc",
         "network": "Scroll L2",
         "reward": "до 800 SCRL",
         "ends": "10 октября 2025"
@@ -18,7 +18,7 @@
     {
         "id": "zeta",
         "name": "ZetaChain ($ZETA)",
-        "logo": "https://sp574-maker.github.io/maker/logos/zetachain.png",
+        "logo": "https://www.google.com/imgres?imgurl=https%3A%2F%2Fcryptototem.com%2Fwp-content%2Fuploads%2F2022%2F12%2FZetaChain-logo-1.jpg&tbnid=b-j4cr92SmhjhM&vet=10CAQQxiAoAWoXChMI4OjBnu_ijgMVAAAAAB0AAAAAEAc..i&imgrefurl=https%3A%2F%2Fcryptototem.com%2Fzetachain-zeta%2F&docid=_YDikCGFiFO3xM&w=150&h=150&itg=1&q=ZetaChain%20(%24ZETA)&ved=0CAQQxiAoAWoXChMI4OjBnu_ijgMVAAAAAB0AAAAAEAc",
         "network": "ZetaChain",
         "reward": "до 400 ZETA",
         "ends": "5 октября 2025"
@@ -26,7 +26,7 @@
     {
         "id": "layerzero",
         "name": "LayerZero ($ZRO)",
-        "logo": "https://sp574-maker.github.io/maker/logos/layerzero.png",
+        "logo": "https://www.google.com/imgres?q=LayerZero%20(%24ZRO)&imgurl=https%3A%2F%2Fholder.io%2Fru%2Fwp-content%2Fuploads%2Fcoins%2F6%2Fzro--3-69686.jpg&imgrefurl=https%3A%2F%2Fholder.io%2Fru%2Fcoins%2Fzro-3%2F&docid=dmiKFFyJGeC4FM&tbnid=bUnTc4unAkY22M&vet=12ahUKEwid47es7-KOAxXvLBAIHZc_CUwQM3oECBkQAA..i&w=250&h=250&hcb=2&ved=2ahUKEwid47es7-KOAxXvLBAIHZc_CUwQM3oECBkQAA",
         "network": "Omnichain",
         "reward": "до 500 ZRO",
         "ends": "20 октября 2025"
@@ -34,7 +34,7 @@
     {
         "id": "linea",
         "name": "Linea ($LNA)",
-        "logo": "https://sp574-maker.github.io/maker/logos/linea.png",
+        "logo": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fzapper.xyz%2Fru%2Fnetwork%2Flinea&psig=AOvVaw0qYlJ_89qpjLeW2AsbNXsf&ust=1753906130856000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCPD1hdXv4o4DFQAAAAAdAAAAABAE",
         "network": "Linea zkEVM",
         "reward": "до 700 LNA",
         "ends": "15 сентября 2025"
@@ -42,23 +42,15 @@
     {
         "id": "manta",
         "name": "Manta Network ($MANTA)",
-        "logo": "https://sp574-maker.github.io/maker/logos/manta.png",
+        "logo": "https://www.google.com/imgres?q=Manta%20Network%20(%24MANTA)&imgurl=https%3A%2F%2Fimg.cryptorank.io%2Fcoins%2Fmanta%2520network1644577306377.png&imgrefurl=https%3A%2F%2Fcryptorank.io%2Fru%2Fico%2Fmanta-network&docid=PuKQ9PtJRcgRlM&tbnid=VR6y3XlqOHCn2M&vet=12ahUKEwjpnZbi7-KOAxUWFhAIHcm-Nz8QM3oECB4QAA..i&w=400&h=400&hcb=2&ved=2ahUKEwjpnZbi7-KOAxUWFhAIHcm-Nz8QM3oECB4QAA",
         "network": "Manta Pacific",
         "reward": "до 300 MANTA",
         "ends": "28 сентября 2025"
     },
     {
-        "id": "polygoncdk",
-        "name": "Polygon CDK ($POL)",
-        "logo": "https://sp574-maker.github.io/maker/logos/polygon.png",
-        "network": "Polygon zkCDK",
-        "reward": "до 600 POL",
-        "ends": "12 октября 2025"
-    },
-    {
         "id": "starknet2",
         "name": "StarkNet Phase 2 ($STRK)",
-        "logo": "https://sp574-maker.github.io/maker/logos/starknet.png",
+        "logo": "https://www.google.com/imgres?q=StarkNet%20Phase%202%20(%24STRK)&imgurl=https%3A%2F%2Fblog.ueex.com%2Fwp-content%2Fuploads%2F2025%2F03%2Fstarknet-token-strk-logo.png&imgrefurl=https%3A%2F%2Fblog.ueex.com%2Fen-us%2Fcrypto-coins-traded%2Fstrk%2F&docid=otTxLKEFvK1PUM&tbnid=6XO13KEU-3kHwM&vet=12ahUKEwi43IyD8OKOAxWeFRAIHVIVE6MQM3oECB0QAA..i&w=2000&h=2000&hcb=2&ved=2ahUKEwi43IyD8OKOAxWeFRAIHVIVE6MQM3oECB0QAA",
         "network": "StarkNet",
         "reward": "до 900 STRK",
         "ends": "3 ноября 2025"
@@ -66,7 +58,7 @@
     {
         "id": "taiko",
         "name": "Taiko ($TKO)",
-        "logo": "https://sp574-maker.github.io/maker/logos/taiko.png",
+        "logo": "https://www.google.com/imgres?q=Taiko%20(%24TKO)&imgurl=https%3A%2F%2Fchainbroker.io%2F_next%2Fimage%2F%3Furl%3Dhttps%253A%252F%252Fstatic.chainbroker.io%252Fmediafiles%252Fprojects%252Ftaiko%252Ftaiko.jpeg%26w%3D2560%26q%3D75&imgrefurl=https%3A%2F%2Fchainbroker.io%2Fprojects%2Ftaiko%2F&docid=_T4TzR6GAYfw8M&tbnid=QpY3EYdy0mkhnM&vet=12ahUKEwj4ku7I8OKOAxVrPxAIHV3EH94QM3oECBgQAA..i&w=400&h=400&hcb=2&ved=2ahUKEwj4ku7I8OKOAxVrPxAIHV3EH94QM3oECBgQAA",
         "network": "Taiko Alpha-3",
         "reward": "до 500 TKO",
         "ends": "25 октября 2025"
@@ -74,7 +66,7 @@
     {
         "id": "altlayer",
         "name": "AltLayer ($ALT)",
-        "logo": "https://sp574-maker.github.io/maker/logos/altlayer.png",
+        "logo": "https://www.google.com/imgres?q=AltLayer%20(%24ALT&imgurl=https%3A%2F%2Fdirectus.messari.io%2Fassets%2F4dfe3595-ce81-4534-980b-43ed6d7df047&imgrefurl=https%3A%2F%2Fmessari.io%2Fproject%2Faltlayer&docid=JVK_IsoePr9v0M&tbnid=RqMOBwX1WKIU8M&vet=12ahUKEwjq4KLc8OKOAxWdEBAIHX6CIboQM3oECCEQAA..i&w=400&h=400&hcb=2&ved=2ahUKEwjq4KLc8OKOAxWdEBAIHX6CIboQM3oECCEQAA",
         "network": "Restaked Rollups",
         "reward": "до 350 ALT",
         "ends": "7 октября 2025"
