@@ -19,7 +19,8 @@
     <!-- Аватар + Інформація -->
     <div class="card" style="text-align:center;">
       <img id="avatar" src="" alt="avatar" width="60" height="60" style="border-radius:50%; margin-bottom:10px; display:none;" />
-      <p><strong>👤 Пользователь:</strong> <span id="username">—</span></p>
+      <p><strong>👤 Пользователь:</strong> <span id="fullname">—</span></p>
+      <p><strong>📛 Username:</strong> <span id="username">—</span></p>
       <p><strong>🆔 Telegram ID:</strong> <span id="userid">—</span></p>
       <p><strong>⏰ Время регистрации:</strong> <span id="timestamp">—</span></p>
       <p style="margin-top:20px; color:limegreen;">
@@ -38,47 +39,49 @@
     let tgUser = {};
     const now = new Date().toLocaleString();
 
-    if (typeof Telegram !== "undefined" && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
-      // ✅ WebApp запущений через Telegram
+    if (typeof Telegram !== "undefined" && Telegram.WebApp?.initDataUnsafe?.user) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
 
-      tgUser = Telegram.WebApp.initDataUnsafe.user;
+      const u = Telegram.WebApp.initDataUnsafe.user;
+      tgUser.id = u.id;
+      tgUser.username = u.username || "—";
+      tgUser.first_name = [u.first_name, u.last_name].filter(Boolean).join(" ") || "—";
+      tgUser.photo_url = u.photo_url || "";
 
-      // Зберегти в localStorage
+      // Збереження в localStorage
       localStorage.setItem("tg_user_id", tgUser.id);
-      localStorage.setItem("tg_username", tgUser.username || "");
-      localStorage.setItem("tg_name", tgUser.first_name || "");
-      localStorage.setItem("tg_photo", tgUser.photo_url || "");
+      localStorage.setItem("tg_username", tgUser.username);
+      localStorage.setItem("tg_name", tgUser.first_name);
+      localStorage.setItem("tg_photo", tgUser.photo_url);
       localStorage.setItem("tg_timestamp", now);
     } else {
-      // 🌀 fallback — читаємо з localStorage
+      // Fallback: localStorage
       tgUser.id = localStorage.getItem("tg_user_id") || "—";
       tgUser.username = localStorage.getItem("tg_username") || "—";
       tgUser.first_name = localStorage.getItem("tg_name") || "—";
       tgUser.photo_url = localStorage.getItem("tg_photo") || "";
     }
 
-    // 📋 Вивід у DOM
+    // Відображення
+    document.getElementById("fullname").textContent = tgUser.first_name || "—";
     document.getElementById("username").textContent = tgUser.username || "—";
     document.getElementById("userid").textContent = tgUser.id || "—";
     document.getElementById("timestamp").textContent = localStorage.getItem("tg_timestamp") || now;
 
-    // 🖼️ Аватар
-    if (tgUser.photo_url) {
+    // Аватар
+    if (tgUser.photo_url && tgUser.photo_url !== "—") {
       const avatar = document.getElementById("avatar");
       avatar.src = tgUser.photo_url;
       avatar.style.display = "inline-block";
     }
 
-    // 📢 Поделиться
+    // Поделиться
     function shareAirdrop() {
       Telegram.WebApp.showPopup({
         title: "Поделиться",
         message: "Я стал участником Airdrop с шансом 100% получить награду!",
-        buttons: [
-          { id: "ok", type: "default", text: "Ок" }
-        ]
+        buttons: [{ id: "ok", type: "default", text: "Ок" }]
       });
     }
   </script>
