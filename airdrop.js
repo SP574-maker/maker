@@ -28,7 +28,6 @@ function initTelegram() {
 document.addEventListener("DOMContentLoaded", () => {
     initTelegram();
 
-    // ======= Telegram статус =======
     const tgStatus = document.getElementById("tg_status");
     const uid = localStorage.getItem("tg_user_id") || "-";
     const uname = localStorage.getItem("tg_username") || "-";
@@ -38,9 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
         tgStatus.innerText = "📦 Демо-режим активний (відкрито через браузер)";
     } else {
         tgStatus.innerHTML = `
-            👤 Пользователь: ${fname}<br>
-            🆔 Telegram ID: ${uid}<br>
-            📛 Username: @${uname !== "-" ? uname : "нет"}
+            <div class="profile-card">
+                <p><strong>👤 Пользователь:</strong> ${fname}</p>
+                <p><strong>🆔 Telegram ID:</strong> ${uid}</p>
+                <p><strong>📛 Username:</strong> ${uname !== "-" ? "@" + uname : "нет"}</p>
+            </div>
         `;
     }
 
