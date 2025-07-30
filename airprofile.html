@@ -1,39 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎉 Airdrop Участие</title>
-  <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🎉 Airdrop Участие</title>
+    <link rel="stylesheet" href="https://sp574-maker.github.io/maker/style.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1 style="text-align:center;">🎯 Участие в Airdrop</h1>
+    <div class="container">
+        <h1 style="text-align:center;">🎯 Участие в Airdrop</h1>
 
-    <!-- Анімація або іконка -->
-    <div style="text-align:center; margin: 20px;">
-      <img src="https://cdn-icons-png.flaticon.com/512/3500/3500833.png" alt="airdrop" width="80" style="animation: popUp 0.5s ease;">
+        <!-- Анімація -->
+        <div style="text-align:center; margin: 20px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3500/3500833.png" alt="airdrop" width="80" style="animation: popUp 0.5s ease;">
+        </div>
+
+        <!-- Інформаційна картка -->
+        <div class="card" style="text-align:center;">
+            <img id="avatar" src="" alt="avatar" width="60" height="60" style="border-radius:50%; margin-bottom:10px; display:none;" />
+            <p><strong>👤 Пользователь:</strong> <span id="fullname">—</span></p>
+            <p><strong>📛 Username:</strong> <span id="username">—</span></p>
+            <p><strong>🆔 Telegram ID:</strong> <span id="userid">—</span></p>
+            <p><strong>⏰ Время регистрации:</strong> <span id="timestamp">—</span></p>
+            <p style="margin-top:20px; color:limegreen;">
+                ✅ Вы стали участником Airdrop и получили <strong>100% возможность участия</strong> в розыгрыше наград.
+            </p>
+        </div>
+
+        <!-- Кнопки -->
+        <div style="text-align:center; margin-top:30px;">
+            <button onclick="shareAirdrop()">📢 Поделиться</button>
+            <button onclick="Telegram.WebApp.close()">🔚 Закрыть</button>
+        </div>
     </div>
 
-    <!-- Аватар + Інформація -->
-    <div class="card" style="text-align:center;">
-      <img id="avatar" src="" alt="avatar" width="60" height="60" style="border-radius:50%; margin-bottom:10px; display:none;" />
-      <p><strong>👤 Пользователь:</strong> <span id="fullname">—</span></p>
-      <p><strong>📛 Username:</strong> <span id="username">—</span></p>
-      <p><strong>🆔 Telegram ID:</strong> <span id="userid">—</span></p>
-      <p><strong>⏰ Время регистрации:</strong> <span id="timestamp">—</span></p>
-      <p style="margin-top:20px; color:limegreen;">
-        ✅ Вы стали участником Airdrop и получили <strong>100% возможность участия</strong> в розыгрыше наград.
-      </p>
-    </div>
+    <!-- Скрипт з логікою -->
+    <script src="https://sp574-maker.github.io/maker/airdrop.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const avatar = document.getElementById("avatar");
+            const fullname = document.getElementById("fullname");
+            const username = document.getElementById("username");
+            const userid = document.getElementById("userid");
+            const timestamp = document.getElementById("timestamp");
 
-    <!-- Кнопки -->
-    <div style="text-align:center; margin-top:30px;">
-      <button onclick="shareAirdrop()">📢 Поделиться</button>
-      <button onclick="Telegram.WebApp.close()">🔚 Закрыть</button>
-    </div>
-  </div>
-  </body>
-  <script src="https://sp574-maker.github.io/maker/airdrop.js"></script>
+            const name = localStorage.getItem("tg_name") || "—";
+            const user = localStorage.getItem("tg_username") || "—";
+            const id = localStorage.getItem("tg_user_id") || "—";
+            const time = localStorage.getItem("tg_timestamp") || "—";
+            const photo = localStorage.getItem("tg_photo");
+
+            fullname.textContent = name;
+            username.textContent = user;
+            userid.textContent = id;
+            timestamp.textContent = time;
+
+            if (photo && photo !== "-") {
+                avatar.src = photo;
+                avatar.style.display = "inline-block";
+            }
+        });
+
+        function shareAirdrop() {
+            Telegram.WebApp?.showPopup({
+                title: "Поделиться",
+                message: "Я стал участником Airdrop с шансом 100% получить награду!",
+                buttons: [{ id: "ok", type: "default", text: "Ок" }]
+            });
+        }
+    </script>
+</body>
 </html>
