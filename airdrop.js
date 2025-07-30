@@ -33,9 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const uname = localStorage.getItem("tg_username") || "-";
     const fname = localStorage.getItem("tg_name") || "-";
 
-    if (demoMode) {
-        tgStatus.innerText = "📦 Демо-режим активний (відкрито через браузер)";
-    } else {
+    if (tgStatus) {
         tgStatus.innerHTML = `
             <div class="profile-card">
                 <p><strong>👤 Пользователь:</strong> ${fname}</p>
@@ -161,14 +159,20 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
-    // ===== Відправка через Telegram WebApp або лог у браузері =====
+    // 💾 Зберегти в localStorage для airprofile.html
+    localStorage.setItem("tg_user_id", payload.user_id);
+    localStorage.setItem("tg_username", payload.username);
+    localStorage.setItem("tg_name", payload.name);
+    localStorage.setItem("tg_timestamp", payload.timestamp);
+
     if (!demoMode && tg?.sendData) {
         console.log("[📤 Надсилання в Telegram WebApp]", payload);
         tg.sendData(JSON.stringify(payload));
         tg.close();
     } else {
         console.warn("📦 Демо-режим: дані не надіслано через Telegram.");
-        alert("📦 Демо-режим: дані не надіслано (браузерний режим). Відкрийте через Telegram для реальної відправки.");
+        alert("📦 Демо-режим: дані не надіслано (браузерний режим). Переходимо до профілю.");
         console.log("[DEMO PAYLOAD]", payload);
+        window.location.href = "airprofile.html";
     }
 }
