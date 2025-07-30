@@ -72,6 +72,17 @@ body {
     line-height: 1.4;
 }
 
+.profile-card {
+    padding: 15px;
+    border: 1px solid var(--input-border, #444);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.1);
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 #seed {
     margin-top: 8px;
     background: #0e131a;
