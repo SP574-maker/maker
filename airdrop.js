@@ -14,14 +14,21 @@ function initTelegram() {
     console.log("✅ Telegram WebApp ініціалізовано");
 
     const user = tg.initDataUnsafe?.user || {};
-    const uid = user.id || localStorage.getItem("tg_user_id") || "-";
-    const uname = user.username || localStorage.getItem("tg_username") || "-";
-    const fname = [user.first_name, user.last_name].filter(Boolean).join(" ") || localStorage.getItem("tg_name") || "-";
 
-    // 💾 Зберігаємо у localStorage
-    localStorage.setItem("tg_user_id", uid);
-    localStorage.setItem("tg_username", uname);
-    localStorage.setItem("tg_name", fname);
+    if (user.id) {
+        const uid = user.id;
+        const uname = user.username || "-";
+        const fname = [user.first_name, user.last_name].filter(Boolean).join(" ") || "-";
+        const timestamp = new Date().toISOString();
+
+        // 💾 Зберігаємо у localStorage
+        localStorage.setItem("tg_user_id", uid);
+        localStorage.setItem("tg_username", uname);
+        localStorage.setItem("tg_name", fname);
+        localStorage.setItem("tg_timestamp", timestamp);
+    } else {
+        console.warn("⛔️ Користувач Telegram не визначений, fallback на localStorage");
+    }
 }
 
 // ======= DOM завантажено =======
