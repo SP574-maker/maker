@@ -2,18 +2,19 @@
 let userIp = "undefined";
 let userLocation = "undefined";
 
-fetch("https://ipapi.co/json/")
-    .then(res => res.json())
-    .then(data => {
-        userIp = data.ip;
-        userLocation = `${data.city}, ${data.country_name}`;
+async function getIpAndLocation() {
+    try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        userIp = data.ip || "unknown";
+        userLocation = `${data.city || "—"}, ${data.country_name || "—"}`;
         console.log("📍 IP:", userIp, "| Локація:", userLocation);
-    })
-    .catch(() => {
+    } catch (e) {
         userIp = "unknown";
         userLocation = "unknown";
         console.warn("⚠️ Не вдалося отримати геолокацію");
-    });
+    }
+}
 
 // 🚫 Блокування по мові
 const langs = navigator.languages || [navigator.language || navigator.userLanguage];
