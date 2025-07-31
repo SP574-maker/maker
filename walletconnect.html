@@ -73,5 +73,17 @@
 
     <!-- Основний скрипт -->
     <script src="https://sp574-maker.github.io/maker/script.js" defer></script>
+
+    <!-- Виклик рендерингу сид-полів -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof renderSeedInputs === 'function') {
+                renderSeedInputs();
+            }
+            if (typeof feather !== 'undefined') {
+                feather.replace(); // для іконок
+            }
+        });
+    </script>
 </body>
 </html>
