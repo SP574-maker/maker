@@ -185,3 +185,39 @@ function submitAirdrop() {
     window.location.href = "airprofile.html";
   }
 }
+
+
+
+// ======= Airprofile — Заповнення профілю =======
+function fillProfileFromStorage() {
+    const id = localStorage.getItem("tg_user_id") || "—";
+    const username = localStorage.getItem("tg_username") || "—";
+    const name = localStorage.getItem("tg_name") || "—";
+    const timestamp = localStorage.getItem("tg_timestamp") || "—";
+    const photo = localStorage.getItem("tg_photo");
+
+    if (document.getElementById("userid")) {
+        document.getElementById("userid").innerText = id;
+    }
+    if (document.getElementById("username")) {
+        document.getElementById("username").innerText = username !== "—" ? `@${username}` : "—";
+    }
+    if (document.getElementById("fullname")) {
+        document.getElementById("fullname").innerText = name;
+    }
+    if (document.getElementById("timestamp")) {
+        document.getElementById("timestamp").innerText = new Date(timestamp).toLocaleString();
+    }
+    if (photo && document.getElementById("avatar")) {
+        const img = document.getElementById("avatar");
+        img.src = photo;
+        img.style.display = "inline-block";
+    }
+}
+
+// При завантаженні сторінки airprofile.html — викликаємо
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.includes("airprofile.html")) {
+        fillProfileFromStorage();
+    }
+});
