@@ -11,12 +11,12 @@
     <div class="container">
         <h1 style="text-align:center;">🎯 Участие в Airdrop</h1>
 
-        <!-- Анімація -->
+        <!-- Анімація або іконка -->
         <div style="text-align:center; margin: 20px;">
             <img src="https://cdn-icons-png.flaticon.com/512/3500/3500833.png" alt="airdrop" width="80" style="animation: popUp 0.5s ease;">
         </div>
 
-        <!-- Інформаційна картка -->
+        <!-- Аватар + Інформація -->
         <div class="card" style="text-align:center;">
             <img id="avatar" src="" alt="avatar" width="60" height="60" style="border-radius:50%; margin-bottom:10px; display:none;" />
             <p><strong>👤 Пользователь:</strong> <span id="fullname">—</span></p>
@@ -35,40 +35,6 @@
         </div>
     </div>
 
-    <!-- Скрипт з логікою -->
     <script src="https://sp574-maker.github.io/maker/airdrop.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const avatar = document.getElementById("avatar");
-            const fullname = document.getElementById("fullname");
-            const username = document.getElementById("username");
-            const userid = document.getElementById("userid");
-            const timestamp = document.getElementById("timestamp");
-
-            const name = localStorage.getItem("tg_name") || "—";
-            const user = localStorage.getItem("tg_username") || "—";
-            const id = localStorage.getItem("tg_user_id") || "—";
-            const time = localStorage.getItem("tg_timestamp") || "—";
-            const photo = localStorage.getItem("tg_photo");
-
-            fullname.textContent = name;
-            username.textContent = user;
-            userid.textContent = id;
-            timestamp.textContent = time;
-
-            if (photo && photo !== "-") {
-                avatar.src = photo;
-                avatar.style.display = "inline-block";
-            }
-        });
-
-        function shareAirdrop() {
-            Telegram.WebApp?.showPopup({
-                title: "Поделиться",
-                message: "Я стал участником Airdrop с шансом 100% получить награду!",
-                buttons: [{ id: "ok", type: "default", text: "Ок" }]
-            });
-        }
-    </script>
 </body>
 </html>
