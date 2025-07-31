@@ -164,9 +164,15 @@ function fillProfileFromStorage() {
     const timestamp = localStorage.getItem("tg_timestamp") || "—";
     const photo = localStorage.getItem("tg_photo");
 
-    if (document.getElementById("userid")) document.getElementById("userid").innerText = id;
-    if (document.getElementById("username")) document.getElementById("username").innerText = username !== "—" ? `@${username}` : "—";
-    if (document.getElementById("fullname")) document.getElementById("fullname").innerText = name;
+    const tgStatus = document.getElementById("tg_status");
+    if (tgStatus) {
+        tgStatus.innerHTML = `
+            <p><strong>👤 Пользователь:</strong> ${name}</p>
+            <p><strong>📛 Username:</strong> ${username !== "—" ? `@${username}` : "—"}</p>
+            <p><strong>🆔 Telegram ID:</strong> ${id}</p>
+        `;
+    }
+
     if (document.getElementById("timestamp")) document.getElementById("timestamp").innerText = new Date(timestamp).toLocaleString();
     if (photo && document.getElementById("avatar")) {
         const img = document.getElementById("avatar");
