@@ -195,3 +195,13 @@ function shareAirdrop() {
 
     Telegram.WebApp.openTelegramLink(fullLink);
 }
+
+
+
+function closeWebApp() {
+    if (typeof Telegram !== "undefined" && Telegram.WebApp && Telegram.WebApp.close) {
+        Telegram.WebApp.close();
+    } else {
+        console.warn("⚠️ Telegram WebApp недоступен. Закрытие невозможно.");
+    }
+}
