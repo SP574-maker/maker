@@ -185,3 +185,13 @@ function initCustomSelect() {
         }
     });
 }
+
+
+
+function shareAirdrop() {
+    const msg = encodeURIComponent("🚀 Я только что принял участие в Airdrop через Web3 AirDrop Бот! 🔗 Присоединяйся:");
+    const url = encodeURIComponent("https://t.me/airdropdex_bot");
+    const fullLink = `https://t.me/share/url?url=${url}&text=${msg}`;
+
+    Telegram.WebApp.openTelegramLink(fullLink);
+}
