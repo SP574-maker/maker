@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const card = document.createElement('div');
                 card.className = 'airdrop-card';
                 card.innerHTML = `
-                    <img src="${drop.logo}" class="token-logo" alt="${drop.name}" />
                     <h2>${drop.name}</h2>
                     <p>💸 Нагорода: <strong>${drop.reward}</strong></p>
                     <p>🌐 Мережа: ${drop.network}</p>
